@@ -1,10 +1,10 @@
-# english
+#english
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPIc Quest: Path to IH</title>
+    <title>OPIc Quest: Path to IH (Padlet Edition)</title>
     <!-- Tailwind CSS for modern responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for retro/modern gaming feels -->
@@ -34,6 +34,26 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #6b7280;
         }
+        .padlet-column {
+            background-color: #111827;
+            border: 1px border #1f2937;
+            border-radius: 1rem;
+        }
+        .padlet-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            transition: all 0.2s ease-in-out;
+        }
+        .padlet-card:hover {
+            border-color: #6366f1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+        .active-padlet-card {
+            border-color: #818cf8 !important;
+            background-color: #312e81/40 !important;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden">
@@ -41,7 +61,7 @@
     <script>
         // Game state variables
         const gameState = {
-            stage: 1,
+            activeQuestionId: "desc-1",
             player: {
                 name: '용사',
                 class: 'Mage', // Warrior, Mage, Rogue
@@ -64,73 +84,236 @@
             speechActive: false,
             recognition: null,
             transcript: "",
-            apiKey: "", // Left empty for system automation / prompt injection
+            apiKey: "", 
             isProcessing: false
         };
 
-        // Stages setup
-        const stagesInfo = {
-            1: {
-                monsterName: '묘사의 슬라임 (Description Slime)',
-                type: 'description',
-                avatar: '🦠',
-                question: 'I would like to know about your favorite park. What does it look like? Where is it located? Tell me everything about it in detail.',
-                hint: 'IH 공략: 단순히 "Good" 보다는 "scenic", "vibrant" 같은 다채로운 형용사를 활용해 전체적인 분위기를 묘사하세요.',
-                maxHp: 100
+        // Complete 12 Questions Categorized like Padlet columns
+        const questionsDb = {
+            "desc-1": {
+                id: "desc-1",
+                category: "description",
+                title: "공원 묘사 (Favorite Park)",
+                monsterName: "묘사 슬라임 (Description Slime)",
+                avatar: "🦠",
+                maxHp: 100,
+                question: "I would like to know about your favorite park. What does it look like? Where is it located? Tell me everything about it in detail.",
+                hint: "IH 공략: 단순히 'Good' 보다는 'scenic', 'vibrant', 'picturesque' 같은 다채로운 형용사로 전체적인 분위기를 묘사하세요."
             },
-            2: {
-                monsterName: '루틴의 고블린 (Routine Goblin)',
-                type: 'routine',
-                avatar: '👺',
-                question: 'Tell me about what you usually do when you visit your favorite park. What is your typical routine from the moment you arrive until you leave?',
-                hint: 'IH 공략: 행동의 순서를 깔끔하게 정리하는 연결어(First of all, then, after that, finally)와 빈도 부사(frequently, occasionally)를 적극 사용하세요.',
-                maxHp: 120
+            "desc-2": {
+                id: "desc-2",
+                category: "description",
+                title: "거주지/이웃 묘사 (Your Home & Neighborhood)",
+                monsterName: "집 지키는 가고일 (Home Gargoyle)",
+                avatar: "🦇",
+                maxHp: 100,
+                question: "Where do you live? Describe your home in detail. What is your favorite room and why do you like it?",
+                hint: "IH 공략: 방의 구조뿐만 아니라 창밖 풍경, 내가 느끼는 정서(cozy, peaceful, spacious)에 맞춰 묘사 영역을 넓히세요."
             },
-            3: {
-                monsterName: '과거 경험의 스펙터 (Past Experience Specter)',
-                type: 'experience',
-                avatar: '👻',
-                question: 'Talk about a memorable or unexpected experience you had at a park. When did it happen, who were you with, and what made it so unforgettable?',
-                hint: 'IH 공략 (가장 중요!): 시제 일치가 생명입니다. 과거 시제(went, saw, realized, was shocked)를 실수 없이 부드럽게 사용하는 모습을 보여주세요.',
-                maxHp: 150
+            "desc-3": {
+                id: "desc-3",
+                category: "description",
+                title: "음악/뮤지션 선호 (Music Preferences)",
+                monsterName: "소리굽쇠 사이렌 (Siren of Sound)",
+                avatar: "🧜‍♀️",
+                maxHp: 110,
+                question: "What kind of music do you like? Who is your favorite singer or composer? Tell me about them and why you enjoy their music.",
+                hint: "IH 공략: 장르의 전형적인 리듬감이나 보컬의 음색(melodious, soothing, energetic)을 풍성한 단어로 소개하세요."
             },
-            4: {
-                monsterName: '롤플레이의 화염 드래곤 (Roleplay Dragon)',
-                type: 'roleplay',
-                avatar: '🐉',
-                question: 'You want to rent a bicycle at a park, but you have some questions. Call the rental shop and ask three to four questions about renting a bike.',
-                hint: 'IH 공략: 상황극에 몰입하여 다양한 의문문 형식(I was wondering if..., Could you tell me..., Is it possible to...)을 쓰고 리액션(Oh, I see, perfect!)을 가미하세요.',
-                maxHp: 200
+            "routine-1": {
+                id: "routine-1",
+                category: "routine",
+                title: "공원 방문 루틴 (Park Routine)",
+                monsterName: "루틴의 고블린 (Routine Goblin)",
+                avatar: "👺",
+                maxHp: 120,
+                question: "Tell me about what you usually do when you visit your favorite park. What is your typical routine from the moment you arrive until you leave?",
+                hint: "IH 공략: 시간 순서를 자연스럽게 정리하는 연결어(First of all, then, after that, finally)와 빈도 부사(frequently, occasionally)를 적극 활용하세요."
+            },
+            "routine-2": {
+                id: "routine-2",
+                category: "routine",
+                title: "주말 일상 활동 (Weekend Habits)",
+                monsterName: "나태의 슬로스 (Weekend Sloth)",
+                avatar: "🦥",
+                maxHp: 120,
+                question: "What do you typically do on weekends? Walk me through your typical weekend activities from Saturday morning to Sunday evening.",
+                hint: "IH 공략: 'I study, I eat'처럼 단순 나열하기보다, 'To blow off some steam, I usually...' 같은 관용적인 목적/이유 표현을 추가하세요."
+            },
+            "routine-3": {
+                id: "routine-3",
+                category: "routine",
+                title: "재활용 습관 및 과정 (Recycling Routine)",
+                monsterName: "분리수거 골렘 (Recycling Golem)",
+                avatar: "🤖",
+                maxHp: 130,
+                question: "How do people in your country recycle? Explain the step-by-step process of sorting trash and garbage in your neighborhood.",
+                hint: "IH 공략: 분리배출 항목(paper, plastic, glass)과 배출 요령(rinse thoroughly, flatten cardboard) 같은 전문성 있는 일상 어휘를 사용하세요."
+            },
+            "experience-1": {
+                id: "experience-1",
+                category: "experience",
+                title: "공원 특별한 경험 (Unforgettable Memory at Park)",
+                monsterName: "과거 경험의 스펙터 (Past Specter)",
+                avatar: "👻",
+                maxHp: 150,
+                question: "Talk about a memorable or unexpected experience you had at a park. When did it happen, who were you with, and what made it so unforgettable?",
+                hint: "IH 공략: 과거 경험은 시제 일치가 생명입니다! 모든 행동과 느낌을 부드럽게 과거 동사(went, saw, realized, was shocked)로 풀어내야 감점이 없습니다."
+            },
+            "experience-2": {
+                id: "experience-2",
+                category: "experience",
+                title: "이전 집 vs 현재 집 비교 (Housing Comparison)",
+                monsterName: "시공간의 웜 (Time-Space Worm)",
+                avatar: "🐛",
+                maxHp: 160,
+                question: "Compare the home you lived in as a child with the home you live in now. What are the key differences between those two places?",
+                hint: "IH 공략: 과거와 현재의 비교이므로 대조용 연결어(In contrast, on the other hand)와 비교급 패턴(much larger than, more convenient than)을 듬뿍 써야 합니다."
+            },
+            "experience-3": {
+                id: "experience-3",
+                category: "experience",
+                title: "잊지 못할 국내/해외 여행 (Memorable Travel)",
+                monsterName: "방랑의 미노타우르스 (Wandering Bull)",
+                avatar: "🐂",
+                maxHp: 160,
+                question: "Describe a trip you took that was particularly memorable. Where did you go, what happened, and why did it stand out in your mind?",
+                hint: "IH 공략: 사건의 기-승-전-결 구도를 세우고 느꼈던 생생한 감정 묘사(thrilled, exhausted, deeply moved)를 포함하세요."
+            },
+            "roleplay-1": {
+                id: "roleplay-1",
+                category: "roleplay",
+                title: "[롤플레이] 자전거 대여 (Renting a Bicycle)",
+                monsterName: "상황극의 화염 드래곤 (Roleplay Dragon)",
+                avatar: "🐉",
+                maxHp: 180,
+                question: "You want to rent a bicycle at a park, but you have some questions. Call the rental shop and ask three to four questions about renting a bike.",
+                hint: "IH 공략: 공손하고 정중한 통화 톤앤매너를 깔끔하게 살리세요 (I was wondering if I could..., Could you tell me if...). 자연스러운 리액션도 핵심입니다."
+            },
+            "roleplay-2": {
+                id: "roleplay-2",
+                category: "roleplay",
+                title: "[롤플레이] 티켓 예매 돌발 상황 해결 (Booking Issue)",
+                monsterName: "혼돈의 트롤 (Chaos Troll)",
+                avatar: "👹",
+                maxHp: 190,
+                question: "You have booked tickets for a concert, but you cannot go due to an urgent situation. Call your friend, explain the problem, and suggest two alternatives.",
+                hint: "IH 공략: 문제 발생에 따른 리얼한 아쉬움(Something urgent came up, I'm so sorry)과 대한 제시(Why don't we..., How about I give you...?)를 능숙하게 연출하세요."
+            },
+            "roleplay-3": {
+                id: "roleplay-3",
+                category: "roleplay",
+                title: "[롤플레이] 여행사 문의 (Travel Agency Inquiry)",
+                monsterName: "계약의 네크로맨서 (Agency Lich)",
+                avatar: "💀",
+                maxHp: 200,
+                question: "You are planning a trip and want to book it through a travel agency. Call the travel agent and ask three or four detailed questions about the travel packages.",
+                hint: "IH 공략: 구체적인 질문사항(price, itinerary, cancellation policy)을 전개하며 비즈니스 전화 통화 패턴을 깔끔히 유지하세요."
             }
         };
     </script>
 
     <!-- Navigation Bar -->
     <header class="border-b border-slate-800 bg-slate-900 px-4 py-3 sticky top-0 z-50 shadow-md">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
             <div class="flex items-center space-x-3">
                 <span class="text-3xl">⚔️</span>
                 <div>
                     <h1 class="gaming-title text-xl md:text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-500">
                         OPIC QUEST
                     </h1>
-                    <p class="text-[10px] md:text-xs text-slate-400 tracking-widest uppercase">The Road to IH Master</p>
+                    <p class="text-[10px] md:text-xs text-slate-400 tracking-widest uppercase">The Road to IH Master (Padlet Edition)</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <div class="hidden sm:flex items-center space-x-2 text-sm bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-slate-300 font-medium">Gemini Evaluator Active</span>
+
+            <!-- Gemini API Key Dynamic Input -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+                <div class="relative w-full max-w-xs sm:w-64">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                        <i class="fa-solid fa-key text-xs"></i>
+                    </span>
+                    <input type="password" id="api-key-input" onchange="updateApiKey(this.value)" placeholder="Gemini API Key를 입력하세요 (선택)" 
+                           class="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                 </div>
-                <button onclick="openHelpModal()" class="text-slate-400 hover:text-white transition duration-200">
+                <div class="hidden sm:flex items-center space-x-2 text-xs bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-slate-300 font-medium">Auto-Evaluation Active</span>
+                </div>
+                <button onclick="openHelpModal()" class="text-slate-400 hover:text-white transition duration-200 p-1 shrink-0">
                     <i class="fa-regular fa-circle-question text-xl"></i>
                 </button>
             </div>
         </div>
     </header>
 
+    <!-- 1. Padlet Quest Board Section (Immediate Selection Board) -->
+    <section class="max-w-7xl w-full mx-auto p-4 mt-2">
+        <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-5 md:p-6 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-5 gap-3">
+                <div>
+                    <h2 class="gaming-title text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-violet-400">
+                        📋 OPIc QUEST BOARD (패들릿 스타일 질문 리스트)
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">원하는 오픽 퀘스트 카드를 클릭하면, 곧바로 아래 전장으로 질문이 소환됩니다!</p>
+                </div>
+                <span class="text-xs font-mono text-indigo-400 bg-indigo-950/50 border border-indigo-900/60 px-3 py-1.5 rounded-full shrink-0 self-start md:self-auto">
+                    <i class="fa-solid fa-square-poll-horizontal mr-1"></i> 총 12개 기출 퀘스트 대기 중
+                </span>
+            </div>
+
+            <!-- Multi-Column Grid (Padlet Column Emulation) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Col 1: Description -->
+                <div class="padlet-column p-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-1">
+                        <span class="text-xs font-bold text-sky-400 tracking-wider uppercase"><i class="fa-solid fa-image mr-1"></i> 1. 인물/사물/공간 묘사</span>
+                        <span class="text-[10px] bg-sky-950/50 text-sky-400 px-2 py-0.5 rounded-full border border-sky-900/40">Description</span>
+                    </div>
+                    <div class="flex flex-col gap-2.5" id="col-description">
+                        <!-- Questions injected here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Col 2: Routine -->
+                <div class="padlet-column p-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-1">
+                        <span class="text-xs font-bold text-amber-400 tracking-wider uppercase"><i class="fa-solid fa-rotate mr-1"></i> 2. 루틴 & 반복 일상</span>
+                        <span class="text-[10px] bg-amber-950/50 text-amber-400 px-2 py-0.5 rounded-full border border-amber-900/40">Routine & Habits</span>
+                    </div>
+                    <div class="flex flex-col gap-2.5" id="col-routine">
+                        <!-- Questions injected here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Col 3: Experience -->
+                <div class="padlet-column p-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-1">
+                        <span class="text-xs font-bold text-rose-400 tracking-wider uppercase"><i class="fa-solid fa-clock-rotate-left mr-1"></i> 3. 특별한 과거 경험</span>
+                        <span class="text-[10px] bg-rose-950/50 text-rose-400 px-2 py-0.5 rounded-full border border-rose-900/40">Experience</span>
+                    </div>
+                    <div class="flex flex-col gap-2.5" id="col-experience">
+                        <!-- Questions injected here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Col 4: Roleplay -->
+                <div class="padlet-column p-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-1">
+                        <span class="text-xs font-bold text-violet-400 tracking-wider uppercase"><i class="fa-solid fa-masks-theater mr-1"></i> 4. 롤플레이 & 돌발</span>
+                        <span class="text-[10px] bg-violet-950/50 text-violet-400 px-2 py-0.5 rounded-full border border-violet-900/40">Roleplay & Crisis</span>
+                    </div>
+                    <div class="flex flex-col gap-2.5" id="col-roleplay">
+                        <!-- Questions injected here dynamically -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
     <!-- Main Content Area -->
-    <main class="flex-grow max-w-6xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-6 items-stretch my-2">
+    <main id="battle-field" class="flex-grow max-w-7xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-6 items-stretch my-2">
         
         <section class="flex-1 flex flex-col gap-6">
             
@@ -183,9 +366,9 @@
             <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl flex-grow flex flex-col justify-between min-h-[340px]">
                 <!-- Top Status Header -->
                 <div class="flex items-center justify-between mb-4 border-b border-slate-800/60 pb-3">
-                    <span class="text-xs font-bold text-rose-500 tracking-wider uppercase"><i class="fa-solid fa-swords mr-1"></i> 현재 대결 스테이지</span>
+                    <span class="text-xs font-bold text-rose-500 tracking-wider uppercase"><i class="fa-solid fa-swords mr-1"></i> 현재 대결 몬스터</span>
                     <span class="text-xs font-bold text-indigo-400 bg-indigo-950/40 border border-indigo-900/50 px-3 py-1 rounded-full" id="stage-badge">
-                        Stage 1/4
+                        Category: Description
                     </span>
                 </div>
 
@@ -203,7 +386,7 @@
                     <!-- Monster HP Tracker -->
                     <div class="w-full max-w-sm">
                         <div class="flex justify-between items-center text-xs mb-1">
-                            <span class="text-rose-400 font-bold"><i class="fa-solid fa-skull mr-1"></i> BOSS HP</span>
+                            <span class="text-rose-400 font-bold"><i class="fa-solid fa-skull mr-1"></i> MONSTER HP</span>
                             <span id="monster-hp-text" class="text-slate-300">100 / 100</span>
                         </div>
                         <div class="w-full bg-slate-900 h-3 rounded-full border border-slate-800 overflow-hidden shadow-inner">
@@ -230,9 +413,9 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg flex flex-col gap-4 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-indigo-400 tracking-wider uppercase">현재 퀘스트 (OPIc Question)</h3>
+                    <h3 class="text-xs font-bold text-indigo-400 tracking-wider uppercase">현재 오픽 질문 (Question Target)</h3>
                     <button onclick="readQuestion()" class="text-slate-400 hover:text-indigo-400 transition flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700/60 px-2.5 py-1 rounded border border-slate-700" title="질문 음성으로 듣기">
-                        <i class="fa-solid fa-volume-high"></i> 듣기 (TTS)
+                        <i class="fa-solid fa-volume-high"></i> 원어민 TTS 듣기
                     </button>
                 </div>
                 
@@ -254,7 +437,7 @@
 
                     <!-- Transcript / Text area -->
                     <div class="relative mb-4">
-                        <textarea id="answer-textarea" placeholder="아래 마이크 버튼을 눌러 말을 시작하거나, 여기에 영어 답변을 직접 입력해보세요! (OPIc IH 획득을 위해서는 최소 1분 이상, 대략 10문장 이상 풍부하게 말하는 연습이 중요합니다.)" 
+                        <textarea id="answer-textarea" placeholder="아래 마이크 버튼을 눌러 말하기 시작하거나, 영어 답변을 직접 타이핑해보세요! (OPIc IH 고득점을 위해서는 10문장 이상 꼼꼼하고 풍부하게 발화하는 연습을 추천합니다!)" 
                                   class="w-full h-44 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm md:text-base leading-relaxed resize-none"></textarea>
                         <div class="absolute bottom-3 right-3 text-xs text-slate-500" id="word-count">
                             0 words
@@ -283,7 +466,7 @@
     </main>
 
     <!-- AI Feedback Panel (Initially Hidden) -->
-    <section id="feedback-panel" class="hidden max-w-6xl w-full mx-auto p-4 mb-6 transition-all duration-500">
+    <section id="feedback-panel" class="hidden max-w-7xl w-full mx-auto p-4 mb-6 transition-all duration-500">
         <div class="bg-slate-900 border-2 border-indigo-500 rounded-2xl overflow-hidden shadow-2xl">
             <!-- Header -->
             <div class="bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 px-6 py-4 flex items-center justify-between border-b border-indigo-950">
@@ -291,7 +474,7 @@
                     <span class="text-2xl">🔮</span>
                     <div>
                         <h4 class="font-bold text-white text-base md:text-lg">AI 오픽 채점 피드백 (IH Assessment)</h4>
-                        <p class="text-[10px] md:text-xs text-indigo-400">Gemini-3-Flash Real-Time Analysis</p>
+                        <p class="text-[10px] md:text-xs text-indigo-400">Gemini Real-Time Analysis</p>
                     </div>
                 </div>
                 <div class="bg-indigo-900/60 border border-indigo-700 text-indigo-200 font-bold px-4 py-1.5 rounded-full text-sm flex items-center gap-2">
@@ -321,7 +504,7 @@
                 <div class="flex flex-col gap-4 justify-between">
                     <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex-grow">
                         <h5 class="text-xs font-bold text-emerald-400 tracking-wider uppercase mb-2"><i class="fa-solid fa-sparkles mr-1"></i> 레벨업 추천 핵심 표현 (IH/AL Expressions)</h5>
-                        <ul id="feedback-expressions" class="text-sm text-slate-300 space-y-2 list-none">
+                        <ul id="feedback-expressions" class="text-sm text-slate-300 space-y-2 list-none font-sans">
                             <li class="flex items-start gap-2">
                                 <span class="text-emerald-500 mt-0.5">✨</span>
                                 <div>
@@ -335,7 +518,7 @@
                     <!-- Next Step Navigation -->
                     <div class="flex gap-3 mt-2">
                         <button onclick="closeFeedbackAndContinue()" class="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-900/20 transition-all duration-300 flex items-center justify-center gap-2">
-                            <span>계속 진행하기 (Continue Quest)</span>
+                            <span>계속 진행하기 (Continue Hunt)</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
@@ -352,7 +535,7 @@
                 <h2 class="gaming-title text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-500 tracking-wider">
                     OPIc Quest
                 </h2>
-                <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">말하면서 깨는 영어 오픽 IH 사냥터</p>
+                <p class="text-xs text-slate-400 mt-1 uppercase tracking-widest">말하면서 공부하는 패들릿 오픽 IH 정복지</p>
             </div>
 
             <div class="space-y-4">
@@ -369,32 +552,32 @@
                         <button type="button" onclick="selectClass('Warrior', '⚔️')" id="class-Warrior" class="class-card bg-slate-950 hover:bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition duration-200 focus:outline-none">
                             <span class="text-3xl block mb-1">⚔️</span>
                             <span class="text-xs font-bold block text-slate-300">전사</span>
-                            <span class="text-[9px] text-slate-500">체력 중시</span>
+                            <span class="text-[9px] text-slate-500">체력 특화</span>
                         </button>
                         <button type="button" onclick="selectClass('Mage', '🧙‍♂️')" id="class-Mage" class="class-card bg-slate-950 hover:bg-slate-800/50 border-2 border-indigo-500 rounded-xl p-3 text-center transition duration-200 focus:outline-none">
                             <span class="text-3xl block mb-1">🧙‍♂️</span>
                             <span class="text-xs font-bold block text-slate-300">마법사</span>
-                            <span class="text-[9px] text-slate-500 font-medium text-indigo-400">기본 선택</span>
+                            <span class="text-[9px] text-slate-500 font-medium text-indigo-400">마력 특화</span>
                         </button>
                         <button type="button" onclick="selectClass('Rogue', '🏹')" id="class-Rogue" class="class-card bg-slate-950 hover:bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition duration-200 focus:outline-none">
                             <span class="text-3xl block mb-1">🏹</span>
                             <span class="text-xs font-bold block text-slate-300">궁수</span>
-                            <span class="text-[9px] text-slate-500">신속 치명타</span>
+                            <span class="text-[9px] text-slate-500">순발 특화</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Play Guide -->
                 <div class="bg-indigo-950/20 border border-indigo-900/40 rounded-xl p-4 text-xs leading-relaxed text-slate-400 space-y-1.5">
-                    <strong class="text-indigo-300 block mb-1">🛡️ 게임 플레이 규칙:</strong>
-                    <p>• 마이크를 켜고 화면에 나타나는 오픽 질문에 맞춰 영어로 풍부하게 대답하세요.</p>
-                    <p>• 문법적 완전함, 어휘 수, 표현의 완성도에 따라 몬스터에게 데미지가 가해집니다.</p>
-                    <p>• 몬스터 체력을 0으로 깎으면 다음 던전(스테이지)으로 진행할 수 있습니다.</p>
+                    <strong class="text-indigo-300 block mb-1">🛡️ 패들릿 모드 게임 플레이 규칙:</strong>
+                    <p>• 상단의 **질문 카드** 중 풀고 싶은 문제를 클릭하면 언제든 곧바로 문제에 도전할 수 있습니다.</p>
+                    <p>• 마이크를 켜서 영어로 유창하게 답변을 전송하여 몬스터를 격퇴하세요.</p>
+                    <p>• 답변의 유창성, 문법 완성도, 필수 표현 탑재 여부에 따라 몬스터에게 강한 타격을 가할 수 있습니다.</p>
                 </div>
             </div>
 
             <button onclick="startGame()" class="w-full py-4 mt-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl shadow-lg transition duration-200">
-                던전 입장하기 (Start Quest)
+                오픽 패들릿 사냥터 입장하기
             </button>
         </div>
     </div>
@@ -404,9 +587,9 @@
         <div class="bg-slate-900 border-2 border-yellow-500 max-w-md w-full rounded-2xl overflow-hidden shadow-2xl p-6 md:p-8 text-center animate-bounce-short">
             <span class="text-6xl mb-4 block">👑</span>
             <h2 class="gaming-title text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 tracking-wider mb-2">
-                VICTORY!
+                QUEST CLEARED!
             </h2>
-            <p class="text-sm text-slate-300 mb-6" id="victory-desc">몬스터를 물리치고 던전을 정복하셨습니다!</p>
+            <p class="text-sm text-slate-300 mb-6" id="victory-desc">성공적으로 몬스터를 쓰러뜨리고 해당 오픽 문항을 마스터하셨습니다!</p>
             
             <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 mb-6 text-left space-y-2">
                 <h4 class="text-xs font-bold text-yellow-500 tracking-wider uppercase mb-1">전리품 획득 (Rewards)</h4>
@@ -415,49 +598,13 @@
                     <span class="text-emerald-400 font-bold" id="victory-xp">+50 XP</span>
                 </div>
                 <div class="flex justify-between text-sm">
-                    <span class="text-slate-400">오픽 레벨 진척도</span>
-                    <span class="text-yellow-400 font-bold">IH Master +25%</span>
+                    <span class="text-slate-400">오픽 등급 완수율</span>
+                    <span class="text-yellow-400 font-bold">IH Master +35%</span>
                 </div>
             </div>
 
-            <button onclick="proceedToNextStage()" class="w-full py-3.5 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-slate-950 font-bold rounded-xl shadow-lg transition duration-200">
-                다음 스테이지로 이동
-            </button>
-        </div>
-    </div>
-
-    <!-- Final Game Clear / IH Achieved Modal -->
-    <div id="clear-modal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-4 border-indigo-500 max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl p-8 text-center">
-            <span class="text-7xl mb-4 block">🏆</span>
-            <h2 class="gaming-title text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400 tracking-wider mb-2">
-                OPIC IH ACHIEVED!
-            </h2>
-            <p class="text-xs text-indigo-400 uppercase tracking-widest font-mono mb-6">오픽 IH 정복을 진심으로 축하합니다!</p>
-
-            <div class="bg-slate-950 border border-indigo-950 p-6 rounded-2xl mb-6 text-left space-y-4">
-                <p class="text-sm text-slate-300 leading-relaxed">
-                    모든 던전 게이트를 통과하며 묘사, 습관, 과거 경험, 롤플레이 전 과정을 완벽히 무찌르셨습니다.
-                    당신은 이제 어떤 오픽 돌발 질문도 유연한 <strong>IH/AL 수준의 전략</strong>으로 응대할 준비가 되었습니다!
-                </p>
-                <div class="flex justify-around border-t border-slate-800 pt-4 text-center">
-                    <div>
-                        <span class="block text-2xl font-extrabold text-yellow-400" id="final-lvl">Lv.5</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold">최종 레벨</span>
-                    </div>
-                    <div>
-                        <span class="block text-2xl font-extrabold text-indigo-400">100%</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold">클리어율</span>
-                    </div>
-                    <div>
-                        <span class="block text-2xl font-extrabold text-emerald-400">IH+ / AL</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold">예상 오픽 등급</span>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="restartFullGame()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl shadow-lg transition duration-200">
-                처음부터 다시 정복하기 (New Game)
+            <button onclick="closeVictoryModal()" class="w-full py-3.5 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-slate-950 font-bold rounded-xl shadow-lg transition duration-200">
+                계속 다른 문항 도전하기
             </button>
         </div>
     </div>
@@ -498,7 +645,7 @@
             <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full animate-ping"></div>
             <div class="absolute inset-2 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <h3 class="gaming-title text-xl font-bold text-white tracking-widest uppercase mb-2">전투력 측정 중...</h3>
+        <h3 class="gaming-title text-xl font-bold text-white tracking-widest uppercase mb-2">답변 평가하는 중...</h3>
         <p class="text-xs text-slate-400 tracking-wider max-w-xs text-center" id="loader-quote">
             "당신의 문법과 어휘 정밀 타격을 계산하고 있습니다..."
         </p>
@@ -513,6 +660,16 @@
     </footer>
 
     <script>
+        // Update API Key directly from header
+        function updateApiKey(val) {
+            gameState.apiKey = val.trim();
+            if (gameState.apiKey) {
+                showToast("🔑 Gemini API Key가 성공적으로 업데이트되었습니다. 실제 AI 채점 기능을 진행합니다!", "success");
+            } else {
+                showToast("🔑 API Key가 제거되었습니다. 시뮬레이션 엔진으로 자동 변경됩니다.", "info");
+            }
+        }
+
         // Welcome and class selection configurations
         function selectClass(className, avatar) {
             document.querySelectorAll('.class-card').forEach(el => {
@@ -542,23 +699,98 @@
             document.getElementById('welcome-modal').classList.add('hidden');
             showToast("🏰 OPIc 던전에 입장했습니다. 행운을 빕니다!", "info");
             
-            // Set up level 1 stage configurations
-            updateStageDisplay();
+            // Render Padlet Questions
+            renderPadletBoard();
+            
+            // Select default first question
+            selectQuestion("desc-1");
             initSpeechRecognition();
         }
 
-        // Initial Speech Recognition Configuration
+        // Render Padlet column-style interactive cards
+        function renderPadletBoard() {
+            const columns = {
+                "description": document.getElementById('col-description'),
+                "routine": document.getElementById('col-routine'),
+                "experience": document.getElementById('col-experience'),
+                "roleplay": document.getElementById('col-roleplay')
+            };
+
+            // Clear columns
+            Object.values(columns).forEach(el => el.innerHTML = '');
+
+            // Group questions
+            Object.values(questionsDb).forEach(q => {
+                const card = document.createElement('div');
+                card.id = `card-${q.id}`;
+                card.className = "padlet-card p-3 rounded-xl cursor-pointer text-xs flex flex-col justify-between hover:scale-[1.02]";
+                card.onclick = () => selectQuestion(q.id);
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-1.5 font-bold text-slate-100 mb-1 leading-tight">
+                            <span class="text-base">${q.avatar}</span>
+                            <span>${q.title}</span>
+                        </div>
+                        <p class="text-slate-400 line-clamp-2 text-[11px] italic mb-2">"${q.question}"</p>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-700/60 pt-1.5 mt-1 text-[10px] text-slate-500 font-mono">
+                        <span>HP: ${q.maxHp}</span>
+                        <span class="text-indigo-400 font-semibold flex items-center gap-1">시작하기 <i class="fa-solid fa-play"></i></span>
+                    </div>
+                `;
+                columns[q.category].appendChild(card);
+            });
+        }
+
+        // Select a specific question to set current battle targeting
+        function selectQuestion(qId) {
+            gameState.activeQuestionId = qId;
+            const q = questionsDb[qId];
+
+            // Highlight Active Card in Padlet UI
+            document.querySelectorAll('.padlet-card').forEach(el => el.classList.remove('active-padlet-card'));
+            const activeCard = document.getElementById(`card-${qId}`);
+            if (activeCard) {
+                activeCard.classList.add('active-padlet-card');
+            }
+
+            // Sync monster data with selected question
+            gameState.monster.name = q.monsterName;
+            gameState.monster.type = q.category;
+            gameState.monster.avatar = q.avatar;
+            gameState.monster.question = q.question;
+            gameState.monster.hint = q.hint;
+            gameState.monster.maxHp = q.maxHp;
+            gameState.monster.hp = q.maxHp;
+
+            // Sync Main HUD
+            document.getElementById('stage-badge').innerText = `Category: ${q.category.toUpperCase()}`;
+            document.getElementById('monster-avatar').innerText = q.avatar;
+            document.getElementById('monster-name').innerText = q.monsterName;
+            document.getElementById('monster-type').innerText = `TYPE: ${q.category.toUpperCase()}`;
+            document.getElementById('monster-question-text').innerText = `"${q.question}"`;
+            document.getElementById('monster-hint-text').innerText = q.hint;
+            
+            // Reset answer textarea
+            document.getElementById('answer-textarea').value = '';
+            updateWordCounter();
+
+            updateMonsterHP();
+            showToast(`🎯 '${q.title}' 퀘스트가 던전 전투 필드에 로드되었습니다!`, "info");
+        }
+
+        // Speech Recognition Setup
         function initSpeechRecognition() {
             window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!window.SpeechRecognition) {
-                showToast("⚠️ 이 브라우저는 마이크 입력을 통한 실시간 음성인식을 지원하지 않습니다. 키보드로 답변을 직접 입력해주세요.", "warning");
+                showToast("⚠️ 이 브라우저는 마이크 입력을 통한 실시간 음성인식을 지원하지 않습니다. 답변을 타자로 타이핑하여 바로 도전해주세요!", "warning");
                 return;
             }
 
             gameState.recognition = new window.SpeechRecognition();
             gameState.recognition.continuous = true;
             gameState.recognition.interimResults = true;
-            gameState.recognition.lang = 'en-US'; // Setting transcription specifically to US English for OPIc
+            gameState.recognition.lang = 'en-US';
 
             gameState.recognition.onstart = () => {
                 gameState.speechActive = true;
@@ -606,10 +838,10 @@
             };
         }
 
-        // Microphone toggle handler
+        // Toggle microphone recording state
         function toggleSpeech() {
             if (!gameState.recognition) {
-                showToast("마이크 음성 인식을 지원하지 않는 환경입니다. 직접 타이핑하여 도전해주세요!", "warning");
+                showToast("마이크 음성 인식을 지원하지 않는 환경입니다. 직접 입력란에 타이핑하여 몬스터에게 대답해주세요!", "warning");
                 return;
             }
 
@@ -620,7 +852,7 @@
                     gameState.recognition.start();
                 } catch (e) {
                     console.error(e);
-                    showToast("마이크 연결 상태를 확인해주세요.", "error");
+                    showToast("마이크 디바이스 연결 상태를 체크해주세요.", "error");
                 }
             }
         }
@@ -631,7 +863,6 @@
             }
         }
 
-        // Live word counter updater
         function updateWordCounter() {
             const text = document.getElementById('answer-textarea').value.trim();
             const words = text ? text.split(/\s+/).length : 0;
@@ -639,25 +870,26 @@
         }
         document.getElementById('answer-textarea').addEventListener('input', updateWordCounter);
 
-        // SpeechSynthesis Question Player
+        // TTS Reader
         function readQuestion() {
             const textToSpeak = document.getElementById('monster-question-text').innerText;
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Stop current playing sound
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(textToSpeak);
                 utterance.lang = 'en-US';
-                utterance.rate = 0.9; // OPIc question speed is usually moderate
+                utterance.rate = 0.9;
                 window.speechSynthesis.speak(utterance);
-                showToast("🔊 원어민 질문 음성이 재생됩니다.", "info");
+                showToast("🔊 원어민 질문 오디오가 흐릅니다. 귀 기울여 듣고 답변을 구성해보세요.", "info");
             } else {
-                showToast("지원되지 않는 브라우저거나 음성 장치 전원이 꺼져 있습니다.", "warning");
+                showToast("현재 환경에서 음성 합성 장치를 활성화할 수 없습니다.", "warning");
             }
         }
 
+        // Attack triggering evaluating routines
         async function attackMonster() {
             const answer = document.getElementById('answer-textarea').value.trim();
             if (!answer || answer.split(/\s+/).length < 5) {
-                showToast("⚠️ 오픽 분석을 받으려면 최소 5단어 이상의 영어를 발화해주세요!", "warning");
+                showToast("⚠️ 최소 5단어 이상의 영어 답변을 작성해야 몬스터에게 타격을 가할 수 있습니다!", "warning");
                 return;
             }
 
@@ -665,12 +897,12 @@
             gameState.isProcessing = true;
             toggleLoader(true);
 
-            // Dynamically switch loader retro messages
+            // Dynamically change loading quotes
             const loaders = [
-                "당신의 문법과 어휘 타격을 가늠하고 있습니다...",
-                "시제 일치 마법 주문을 계산하는 중...",
-                "어휘의 다양성이 얼마나 되는지 탐정 분석 중...",
-                "오픽 채점 위원들의 가혹한 평가 방식을 연산하는 중..."
+                "답변의 전반적인 말하기 정밀도를 측정하고 있습니다...",
+                "시제 사용 마법의 연쇄 계산 중...",
+                "오픽 완벽 수집을 위한 Filler 다채로움 분석 중...",
+                "Gemini 기반 오픽 채점 가중치 부여 연산 진행 중..."
             ];
             let index = 0;
             const loaderTimer = setInterval(() => {
@@ -678,7 +910,7 @@
                 document.getElementById('loader-quote').innerText = loaders[index];
             }, 2000);
 
-            // Construct Gemini Request
+            // API Prompt Configuration
             const systemPrompt = `You are the ultimate OPIc IH Evaluator and Game Master for 'OPIc Quest'.
 The user's goal is to achieve OPIc IH (Intermediate High) or higher. 
 Grade the user's spoken answer (provided as transcribed text) to the target question.
@@ -710,87 +942,96 @@ User English Answer: "${answer}"
 Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
 `;
 
-            const payload = {
-                contents: [{ parts: [{ text: userPrompt }] }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "OBJECT",
-                        properties: {
-                            score: { type: "NUMBER" },
-                            critique: { type: "STRING" },
-                            grammar_corrections: { type: "ARRAY", items: { type: "STRING" } },
-                            key_expressions: { type: "ARRAY", items: { type: "STRING" } },
-                            damage_dealt: { type: "NUMBER" }
-                        },
-                        required: ["score", "critique", "grammar_corrections", "key_expressions", "damage_dealt"]
+            if (gameState.apiKey) {
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                score: { type: "NUMBER" },
+                                critique: { type: "STRING" },
+                                grammar_corrections: { type: "ARRAY", items: { type: "STRING" } },
+                                key_expressions: { type: "ARRAY", items: { type: "STRING" } },
+                                damage_dealt: { type: "NUMBER" }
+                            },
+                            required: ["score", "critique", "grammar_corrections", "key_expressions", "damage_dealt"]
+                        }
+                    },
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
                     }
-                },
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
+                };
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${gameState.apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Gemini API call failed.");
+                    }
+
+                    const result = await response.json();
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (jsonText) {
+                        const parsedJson = JSON.parse(jsonText);
+                        resolveCombat(parsedJson);
+                    } else {
+                        throw new Error("No parsed data.");
+                    }
+                } catch (error) {
+                    console.error("Online API run error, falling back to simulator", error);
+                    const fallbackData = simulateBattleFeedback(answer);
+                    resolveCombat(fallbackData);
+                } finally {
+                    clearInterval(loaderTimer);
+                    toggleLoader(false);
+                    gameState.isProcessing = false;
                 }
-            };
-
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${gameState.apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error("API call limit or Server error.");
-                }
-
-                const result = await response.json();
-                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (jsonText) {
-                    const parsedJson = JSON.parse(jsonText);
-                    resolveCombat(parsedJson);
-                } else {
-                    throw new Error("No response format.");
-                }
-            } catch (error) {
-                console.error("Gemini call failed, rolling back to local sandbox calculation", error);
-                // Fallback simulation in case API is unresponsive (perfect for offline testing)
-                const fallbackData = simulateBattleFeedback(answer);
-                resolveCombat(fallbackData);
-            } finally {
-                clearInterval(loaderTimer);
-                toggleLoader(false);
-                gameState.isProcessing = false;
+            } else {
+                // If API key is empty, run offline simulator instantly
+                setTimeout(() => {
+                    const fallbackData = simulateBattleFeedback(answer);
+                    resolveCombat(fallbackData);
+                    clearInterval(loaderTimer);
+                    toggleLoader(false);
+                    gameState.isProcessing = false;
+                }, 1500);
             }
         }
 
-        // Process combat outcome
+        // Handle battle system results
         function resolveCombat(evaluation) {
             const dmg = Math.round(evaluation.damage_dealt || 30);
             const score = evaluation.score || 70;
 
-            // Damage Monster
+            // Deal Damage
             gameState.monster.hp = Math.max(0, gameState.monster.hp - dmg);
             updateMonsterHP();
 
-            // Self Health calculations (if score is poor, we take small feedback "damage")
+            // Self damages
             let playerDmg = 0;
             if (score < 65) {
                 playerDmg = 20;
                 gameState.player.hp = Math.max(10, gameState.player.hp - playerDmg);
-                showToast(`💥 미흡한 결속으로 반격 공격을 당했습니다! (-${playerDmg} HP)`, "warning");
+                showToast(`💥 전달력이 약해 보스의 강력한 리액션에 휘청거렸습니다! (-${playerDmg} HP)`, "warning");
             } else {
-                // Heal player slightly for outstanding answers
-                gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + 10);
+                gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + 12);
             }
             updatePlayerHP();
 
-            // Display Feedback Box
+            // Apply evaluation HUD display
             document.getElementById('feedback-score').innerText = score;
             document.getElementById('feedback-critique').innerText = evaluation.critique;
-            
-            // Build corrections list
+
+            // Grammars List Injections
             const gList = document.getElementById('feedback-grammar');
             gList.innerHTML = '';
             if (evaluation.grammar_corrections && evaluation.grammar_corrections.length > 0) {
@@ -801,10 +1042,10 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
                     gList.appendChild(li);
                 });
             } else {
-                gList.innerHTML = `<li class="text-slate-400">명백한 문법 에러를 발견하지 못했습니다. 완벽한 타격이군요!</li>`;
+                gList.innerHTML = `<li class="text-slate-400">문장 배치 및 시제가 완벽합니다! 군더더기 없는 타격이었네요.</li>`;
             }
 
-            // Build Expressions list
+            // High-end expressions
             const eList = document.getElementById('feedback-expressions');
             eList.innerHTML = '';
             if (evaluation.key_expressions && evaluation.key_expressions.length > 0) {
@@ -820,47 +1061,64 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
                     eList.appendChild(li);
                 });
             } else {
-                eList.innerHTML = `<li class="text-slate-400">권장 표현이 없습니다.</li>`;
+                eList.innerHTML = `<li class="text-slate-400">권장 표현이 지정되지 않았습니다.</li>`;
             }
 
-            // Show Feedback Section
+            // Display Feedback Panel
             const fbPanel = document.getElementById('feedback-panel');
             fbPanel.classList.remove('hidden');
             fbPanel.scrollIntoView({ behavior: 'smooth' });
 
-            // Toast feedback
-            showToast(`⚔️ 몬스터에게 ${dmg}의 데미지를 가했습니다!`, "success");
+            showToast(`⚔️ 몬스터에게 성공적으로 ${dmg}의 데미지를 가했습니다!`, "success");
 
-            // Game over Check / Victory Check
             if (gameState.monster.hp <= 0) {
                 triggerVictory();
             }
         }
 
+        // Local evaluation fallback simulator
         function simulateBattleFeedback(answer) {
-            // Very simple localized heuristic algorithm for offline/fallback mode
-            const len = answer.split(/\s+/).length;
+            const wordCount = answer.split(/\s+/).length;
             let score = 55;
             let dmg = 15;
-            let critique = "답변 길이가 상대적으로 너무 짧아 공격력이 대폭 약화되었습니다. 오픽 IH 기준을 만족하기 위해 조금 더 풍부하게 상황을 서술해주세요.";
+            let critique = "답변 길이가 상대적으로 다소 짧아 몬스터의 저항을 물리치기에 약합니다. 오픽 IH 기준 달성을 위해 일상 문맥을 더 보충해보세요!";
             const corrections = [];
             const expressions = [];
 
-            if (len > 80) {
-                score = 85;
-                dmg = 90;
-                critique = "장문의 탄탄한 구조가 확인되었습니다! 원활한 연출력과 다채로운 문맥 전개가 인상적입니다. IH 드래곤의 방어를 훌륭히 무너뜨렸습니다.";
-                corrections.push("시제 유지가 양호함: 'I had a wonderful time...'");
-                expressions.push("without a doubt (의심의 여지 없이)", "it was a life-changing event (인생을 바꾼 사건이었다)");
-            } else if (len > 40) {
-                score = 75;
-                dmg = 50;
-                critique = "기본적인 전달력은 준수하지만 IH를 확보하려면 답변에 filler 단어들(like, you know)을 추가하고 세부 묘사를 늘려 흐름의 속도를 조절하는 것이 좋습니다.";
-                corrections.push("어법 연결 검토: 긴 문장을 이어갈 때 connection 단어 배치 보강이 좋습니다.");
-                expressions.push("scenic spot (경치 좋은 명소)", "I regularly visit (나는 정기적으로 방문한다)");
+            // Simple heuristics parsing
+            const hasPastKey = /went|visited|felt|saw|had|was|were|decided|started/i.test(answer);
+            const hasFiller = /you know|well|i mean|anyway|actually|basically/i.test(answer);
+            const hasConnective = /because|although|in addition|since|therefore|however/i.test(answer);
+
+            if (wordCount > 70) {
+                score = 83;
+                dmg = 80;
+                critique = "발화량이 아주 좋습니다! 오픽 채점에서 아주 높은 점수를 가져갈 수 있는 탄탄한 분량입니다. 풍성한 스토리가 전개되었습니다.";
+                expressions.push("as clear as day (명명백백한)", "without a doubt (의심의 여지 없이)");
+                if (!hasPastKey && (gameState.monster.type === 'experience')) {
+                    score = 70;
+                    dmg = 45;
+                    critique = "분량은 좋았지만 과거 경험 문항임에도 과거 시제(went, played 등)가 보이지 않아 감점 처리되어 데미지가 감소했습니다. 시제 일치에 유의하세요!";
+                    corrections.push("과거 행동 서술 시 동사를 과거형으로 고정할 것 (예: 'I go there' -> 'I went there')");
+                }
+            } else if (wordCount > 35) {
+                score = 72;
+                dmg = 45;
+                critique = "중간 정도의 우수한 발화량입니다! 문맥이 부드럽지만, 'Well, you know' 같은 자연스러운 연결 필러(Filler)들을 추가한다면 확실히 완벽한 IH/AL로 올라설 수 있습니다.";
+                corrections.push("발음 정렬 및 세부 묘사를 문맥에 맞게 보충할 것");
+                expressions.push("vibrant atmosphere (활기 넘치는 분위기)", "stress relief (스트레스 해소)");
             } else {
-                corrections.push("발화량이 지나치게 부족함 (오픽 최저 권장치 미달)");
-                expressions.push("Take a walk (산책하다)", "Relieve stress (스트레스를 풀다)");
+                corrections.push("오픽 최소 권장 발화 단어 수 대비 부족 (최소 30단어 권장)");
+                expressions.push("as much as possible (가능한 한 많이)", "get some fresh air (신선한 공기를 마시다)");
+            }
+
+            if (hasFiller) {
+                score = Math.min(100, score + 5);
+                dmg = Math.min(gameState.monster.maxHp, dmg + 10);
+            }
+            if (hasConnective) {
+                score = Math.min(100, score + 4);
+                dmg = Math.min(gameState.monster.maxHp, dmg + 8);
             }
 
             return {
@@ -872,98 +1130,35 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
             };
         }
 
-        // Stage progressions
         function triggerVictory() {
             setTimeout(() => {
                 const victoryModal = document.getElementById('victory-modal');
-                const nextXpGain = 50;
-                
-                // Set modal desc based on stage
-                document.getElementById('victory-desc').innerText = `${gameState.stage}단계 보스 '${gameState.monster.name}'를 성공적으로 제압했습니다!`;
-                document.getElementById('victory-xp').innerText = `+${nextXpGain} XP`;
-                
+                document.getElementById('victory-desc').innerText = `'${gameState.monster.name}'를 완벽히 정복하여 해당 문제를 마스터하셨습니다!`;
                 victoryModal.classList.remove('hidden');
-
-                // Reward Player
-                addXp(nextXpGain);
-            }, 1200);
+                
+                // Add XP
+                addXp(50);
+            }, 1000);
         }
 
-        function proceedToNextStage() {
+        function closeVictoryModal() {
             document.getElementById('victory-modal').classList.add('hidden');
             document.getElementById('feedback-panel').classList.add('hidden');
             
-            // Clear text area for new challenge
-            document.getElementById('answer-textarea').value = '';
-            updateWordCounter();
-
-            if (gameState.stage < 4) {
-                gameState.stage += 1;
-                setupMonsterForStage(gameState.stage);
-                updateStageDisplay();
-                showToast(`🛡️ 스테이지 ${gameState.stage}에 입장하셨습니다!`, "info");
-            } else {
-                // Finished Stage 4 (Victory Full Game Clear)
-                triggerFullGameClear();
-            }
-        }
-
-        function setupMonsterForStage(stgNum) {
-            const data = stagesInfo[stgNum];
-            gameState.monster.name = data.monsterName;
-            gameState.monster.type = data.type;
-            gameState.monster.avatar = data.avatar;
-            gameState.monster.question = data.question;
-            gameState.monster.hint = data.hint;
-            gameState.monster.maxHp = data.maxHp;
-            gameState.monster.hp = data.maxHp;
-
-            // Update UI elements
-            document.getElementById('monster-avatar').innerText = data.avatar;
-            document.getElementById('monster-name').innerText = data.monsterName;
-            document.getElementById('monster-type').innerText = `TYPE: ${data.type.toUpperCase()}`;
-            document.getElementById('monster-question-text').innerText = `"${data.question}"`;
-            document.getElementById('monster-hint-text').innerText = data.hint;
-            
-            updateMonsterHP();
-        }
-
-        function updateStageDisplay() {
-            document.getElementById('stage-badge').innerText = `Stage ${gameState.stage}/4`;
-        }
-
-        function triggerFullGameClear() {
-            document.getElementById('final-lvl').innerText = `Lv.${gameState.player.level}`;
-            document.getElementById('clear-modal').classList.remove('hidden');
-        }
-
-        function restartFullGame() {
-            // Full Reset
-            gameState.stage = 1;
-            gameState.player.level = 1;
-            gameState.player.xp = 0;
-            gameState.player.hp = gameState.player.maxHp;
-            
-            document.getElementById('clear-modal').classList.add('hidden');
-            setupMonsterForStage(1);
-            updateStageDisplay();
-            updatePlayerHP();
-            updatePlayerXP();
-            
-            // Display welcome screen again to restart loop gracefully
-            document.getElementById('welcome-modal').classList.remove('hidden');
+            // Highlight Next Suggestion Card dynamically or keep board interactive
+            showToast("📋 퀘스트 보드에서 다음에 풀고 싶은 기출문제 카드를 자유롭게 선택해보세요!", "success");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function closeFeedbackAndContinue() {
-            // If they didn't defeat the monster yet, let them submit more content
             document.getElementById('feedback-panel').classList.add('hidden');
             if (gameState.monster.hp > 0) {
-                showToast("⚔️ 던전에 여전히 괴물이 살아있습니다! 추가 문장으로 연속 타격을 가하세요!", "warning");
+                showToast("⚔️ 몬스터가 아직 쓰러지지 않았습니다! 추가 답변으로 연타 공격을 넣어보세요!", "warning");
                 document.getElementById('answer-textarea').focus();
             }
         }
 
-        // UI Utility functions
+        // Stat display updates
         function updateMonsterHP() {
             const pct = (gameState.monster.hp / gameState.monster.maxHp) * 100;
             document.getElementById('monster-hp-bar').style.width = `${pct}%`;
@@ -976,7 +1171,6 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
             bar.style.width = `${pct}%`;
             document.getElementById('player-hp-text').innerText = `${gameState.player.hp} / ${gameState.player.maxHp}`;
             
-            // Color thresholds
             if (pct < 30) {
                 bar.className = 'bg-gradient-to-r from-rose-600 to-rose-500 h-full transition-all duration-300';
             } else if (pct < 60) {
@@ -989,16 +1183,15 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
         function addXp(amount) {
             gameState.player.xp += amount;
             if (gameState.player.xp >= gameState.player.nextXp) {
-                // Level Up!
                 gameState.player.xp -= gameState.player.nextXp;
                 gameState.player.level += 1;
                 gameState.player.nextXp = Math.round(gameState.player.nextXp * 1.5);
-                gameState.player.maxHp += 20;
-                gameState.player.hp = gameState.player.maxHp; // Heal to max
+                gameState.player.maxHp += 15;
+                gameState.player.hp = gameState.player.maxHp;
                 
                 document.getElementById('player-level').innerText = `Lv ${gameState.player.level}`;
                 updatePlayerHP();
-                showToast(`🎉 레벨 업! 오픽 등급 성장 완료! Lv ${gameState.player.level}`, "success");
+                showToast(`🎉 축하합니다! 레벨업을 달성하여 오픽 대처력이 크게 상승했습니다. (Lv ${gameState.player.level})`, "success");
             }
             updatePlayerXP();
         }
@@ -1019,17 +1212,15 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
             }
         }
 
-        // Custom hint display trigger
         function triggerMonsterHint() {
-            showToast(`💡 몬스터의 약점 팁: ${gameState.monster.hint}`, "info");
+            showToast(`💡 보스의 방어력 약점 공략법: ${gameState.monster.hint}`, "info");
         }
 
-        // Custom Beautiful Toast notification system
+        // Toast notifications
         function showToast(message, type = "info") {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             
-            // Color configurations based on type
             let bg = "bg-slate-900 border-slate-800";
             let icon = "fa-circle-info text-indigo-400";
             if (type === "success") {
@@ -1051,12 +1242,10 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
 
             container.appendChild(toast);
             
-            // Trigger animation
             setTimeout(() => {
                 toast.classList.remove('translate-y-2', 'opacity-0');
             }, 50);
 
-            // Hide & Remove Toast
             setTimeout(() => {
                 toast.classList.add('translate-y-2', 'opacity-0');
                 setTimeout(() => {
@@ -1065,7 +1254,6 @@ Monster HP: ${gameState.monster.hp}/${gameState.monster.maxHp}
             }, 4500);
         }
 
-        // Modal Help Controls
         function openHelpModal() {
             document.getElementById('help-modal').classList.remove('hidden');
         }
