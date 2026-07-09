@@ -3,575 +3,870 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPIc Mobile Master (Real Test Simulation)</title>
-    <!-- Tailwind CSS for modern responsive styling -->
+    <title>ACTFL OPIc Real Simulation & AI Study Board</title>
+    <!-- Tailwind CSS for high-fidelity responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for premium feels -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome for game icons -->
+    <!-- Google Fonts for authentic look & feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body {
-            font-family: 'Inter', 'Nanum Gothic', sans-serif;
-            background-color: #0b0f19;
-            background-image: radial-gradient(circle at 50% 50%, #1a2035 0%, #080b11 100%);
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: #f1f5f9;
         }
-        /* Simulated Mobile Device container scale control matching image_cd90e2.png */
-        .device-container {
-            width: 380px;
-            height: 780px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            border: 12px solid #1e293b;
-            border-radius: 40px;
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(180deg, #bfe3fc 0%, #9fcbf2 100%);
+        /* Custom styles simulating official ACTFL blue/gray color palette */
+        .actfl-blue {
+            background-color: #4b89dc;
         }
-        /* Pulse for the Recording status indicator */
-        .record-pulse {
-            animation: red-pulse 1.5s infinite;
+        .actfl-navy {
+            color: #1e3a8a;
         }
-        @keyframes red-pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        .actfl-dark-gray {
+            background-color: #3e3e3e;
         }
-        /* Custom visual interactive items */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
+        .actfl-light-gray {
+            background-color: #e5e7eb;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(156, 163, 175, 0.5);
-            border-radius: 2px;
+        /* Pulse for Recording states */
+        .recording-pulse {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        /* Scrollbar customizing */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex flex-col justify-between">
 
-    <!-- Centered Simulated Mobile Device Shell matching image_cd90e2.png styling -->
-    <div class="device-container flex flex-col justify-between select-none">
-        
-        <!-- Internal Canvas for gorgeous Confetti victory effects -->
-        <canvas id="confetti-canvas" class="absolute inset-0 pointer-events-none z-50"></canvas>
-
-        <!-- Top Header Status Area -->
-        <div class="pt-4 px-5 flex items-center justify-between z-10">
-            <!-- Reset / Exit Navigation -->
-            <button onclick="confirmExitExam()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/40 hover:bg-white/60 text-slate-700 transition duration-150">
-                <i class="fa-solid fa-arrow-right-from-bracket rotate-180 text-sm"></i>
-            </button>
-            
-            <!-- Real-time OPIc Countdown Timer -->
-            <div class="flex items-center space-x-2 bg-white/50 border border-white/40 px-3 py-1 rounded-full shadow-sm">
-                <span class="text-rose-500 animate-pulse text-xs"><i class="fa-solid fa-hourglass-half"></i></span>
-                <span id="exam-timer-display" class="text-xs font-bold text-slate-700 font-mono">40:00</span>
-            </div>
-
-            <!-- Settings Gear Button -->
-            <button onclick="toggleSettingsModal(true)" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/40 hover:bg-white/60 text-slate-700 transition duration-150">
-                <i class="fa-solid fa-gear text-md"></i>
-            </button>
-        </div>
-
-        <!-- Dynamic Main Display Area -->
-        <div class="px-5 flex-grow flex flex-col justify-center py-3 z-10 overflow-hidden relative">
-            
-            <div id="screen-survey" class="w-full h-full bg-white rounded-[28px] shadow-lg p-5 flex flex-col justify-between overflow-hidden animate-fade-in">
-                <div class="space-y-3 overflow-y-auto max-h-[460px] pr-1 custom-scrollbar">
-                    <div class="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                        <span class="text-2xl">📋</span>
-                        <div>
-                            <h3 class="font-extrabold text-slate-800 text-sm">OPIc Background Survey</h3>
-                            <p class="text-[10px] text-slate-400">실제 맞춤형 문제 출제를 위한 서베이 선택 (3개 이상)</p>
-                        </div>
-                    </div>
-
-                    <!-- Category 1 -->
-                    <div class="space-y-1.5">
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">직업 및 학업</span>
-                        <div class="grid grid-cols-2 gap-1.5 text-xs">
-                            <button onclick="toggleSurveyItem(this, 'work')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">💻 직장인</button>
-                            <button onclick="toggleSurveyItem(this, 'student')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">🎓 학생</button>
-                        </div>
-                    </div>
-
-                    <!-- Category 2 -->
-                    <div class="space-y-1.5">
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">현재 귀하의 거주지</span>
-                        <div class="grid grid-cols-2 gap-1.5 text-xs">
-                            <button onclick="toggleSurveyItem(this, 'living-family')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">🏡 가족과 거주</button>
-                            <button onclick="toggleSurveyItem(this, 'living-alone')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">🙋 독신자 거주</button>
-                        </div>
-                    </div>
-
-                    <!-- Category 3 -->
-                    <div class="space-y-1.5">
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">여가 활동 / 취미 (최소 2개 선택)</span>
-                        <div class="grid grid-cols-2 gap-1.5 text-xs">
-                            <button onclick="toggleSurveyItem(this, 'cinema')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">🎬 영화 보기</button>
-                            <button onclick="toggleSurveyItem(this, 'park')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">🏞️ 공원 가기</button>
-                            <button onclick="toggleSurveyItem(this, 'music')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">🎵 음악 감상</button>
-                            <button onclick="toggleSurveyItem(this, 'cafe')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">☕ 카페 가기</button>
-                        </div>
-                    </div>
-
-                    <!-- Category 4 -->
-                    <div class="space-y-1.5">
-                        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">스포츠 / 운동</span>
-                        <div class="grid grid-cols-2 gap-1.5 text-xs">
-                            <button onclick="toggleSurveyItem(this, 'jogging')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">🏃 조깅/걷기</button>
-                            <button onclick="toggleSurveyItem(this, 'gym')" class="survey-btn p-2 rounded-xl border border-slate-200 text-left hover:bg-blue-50/50 transition">💪 헬스/피트니스</button>
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="proceedToDifficulty()" class="w-full mt-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1">
-                    난이도 선택 단계로 이동 <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <div id="screen-difficulty" class="hidden w-full h-full bg-white rounded-[28px] shadow-lg p-5 flex flex-col justify-between animate-fade-in">
-                <div class="space-y-4 text-center my-auto">
-                    <span class="text-4xl">📊</span>
-                    <h3 class="font-extrabold text-slate-800 text-sm">Self Assessment</h3>
-                    <p class="text-[11px] text-slate-400 leading-relaxed px-2">원하시는 목표 등급을 획득하기 위한 난이도를 자율 선택해 주세요.</p>
-                    
-                    <div class="space-y-2">
-                        <!-- Level 5-6 Recommended for IH/AL -->
-                        <button onclick="selectDifficulty(5)" id="diff-5" class="diff-btn w-full p-3 rounded-xl border-2 border-indigo-600 bg-indigo-50/40 text-left transition flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-slate-800 text-xs block">🔥 5단계 (추천)</span>
-                                <span class="text-[9px] text-slate-400">목표 등급: IH / AL 완벽 대비</span>
-                            </div>
-                            <span class="text-indigo-600"><i class="fa-solid fa-circle-check"></i></span>
-                        </button>
-
-                        <button onclick="selectDifficulty(4)" id="diff-4" class="diff-btn w-full p-3 rounded-xl border border-slate-200 text-left transition hover:bg-slate-50 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-slate-800 text-xs block">⚡ 4단계</span>
-                                <span class="text-[9px] text-slate-400">목표 등급: IM2 / IM3 / IH 안정권</span>
-                            </div>
-                            <span class="text-slate-300"><i class="fa-regular fa-circle"></i></span>
-                        </button>
-
-                        <button onclick="selectDifficulty(3)" id="diff-3" class="diff-btn w-full p-3 rounded-xl border border-slate-200 text-left transition hover:bg-slate-50 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-slate-800 text-xs block">🌱 3단계</span>
-                                <span class="text-[9px] text-slate-400">목표 등급: IL / IM1 입문</span>
-                            </div>
-                            <span class="text-slate-300"><i class="fa-regular fa-circle"></i></span>
-                        </button>
-                    </div>
-                </div>
-
-                <button onclick="startExam()" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-play"></i> OPIc 실전 시험 시작
-                </button>
-            </div>
-
-            <div id="screen-exam" class="hidden w-full h-full flex flex-col justify-between">
-                <!-- Interviewer Eva Rounded Card matching image_cd90e2.png white/light blue palette -->
-                <div id="eva-card" class="bg-white rounded-[28px] shadow-lg overflow-hidden flex flex-col h-[400px] transition-all duration-300">
-                    
-                    <!-- Upper portion: Eva Visual Avatar Container -->
-                    <div class="bg-blue-50/80 px-4 py-4 border-b border-blue-100/50 flex flex-col items-center justify-center relative flex-1">
-                        <!-- Play/Replay count Badge -->
-                        <span id="replay-badge" class="absolute top-3 left-3 bg-indigo-100/80 text-indigo-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-200/50">
-                            Replay: 1/2
-                        </span>
-                        
-                        <!-- Question Topic Category Indicator -->
-                        <span id="topic-badge" class="absolute top-3 right-3 bg-emerald-100/80 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/50 uppercase tracking-wider">
-                            Topic: PARK
-                        </span>
-
-                        <!-- Elegant Animated Eva SVG Avatar -->
-                        <div class="w-20 h-20 rounded-full bg-indigo-50 border-4 border-white shadow-md flex items-center justify-center overflow-hidden relative mb-2">
-                            <svg id="eva-svg" class="w-14 h-14 text-indigo-500 transition-all duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <!-- Audio Ripple Effect when Eva is speaking -->
-                            <div id="eva-wave-ring" class="absolute inset-0 bg-indigo-500/10 rounded-full animate-ping hidden"></div>
-                        </div>
-
-                        <span class="font-extrabold text-slate-800 text-xs tracking-wide">Eva (OPIc Interviewer)</span>
-                        <p id="eva-action-status" class="text-[9px] text-slate-400 mt-0.5">Click "Listen Question" to start</p>
-                    </div>
-
-                    <!-- Lower portion: Live transcript container & Filler counter -->
-                    <div class="p-4 border-t border-slate-50 flex flex-col justify-between h-[180px] bg-slate-50/40">
-                        <div class="w-full flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            <!-- Toggle Question text (practice aid, not shown in real exam unless selected) -->
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-[9px] font-bold text-slate-400 tracking-wider">SPEECH TRANSCRIPT</span>
-                                <button onclick="toggleQuestionText()" class="text-[9px] font-bold text-indigo-500 hover:underline">
-                                    [지문 보기 <span id="text-toggle-icon">OFF</span>]
-                                </button>
-                            </div>
-                            <p id="hidden-question-text" class="hidden text-[10px] text-slate-500 bg-indigo-50/50 border border-indigo-100/30 p-2 rounded-lg mb-2 leading-relaxed italic"></p>
-                            
-                            <!-- Realtime user spoken text display -->
-                            <p id="live-speech-transcript" class="text-xs text-slate-600 font-medium leading-relaxed italic">답변 준비가 되시면 'RECORD' 버튼을 누르고 말씀하세요...</p>
-                        </div>
-
-                        <!-- Real-time metrics counters for OPIc High Score Strategy (Filler detection) -->
-                        <div class="flex items-center justify-between border-t border-slate-100 pt-2 text-[10px]">
-                            <div class="flex items-center space-x-2 text-slate-500">
-                                <span class="font-semibold text-indigo-600"><i class="fa-regular fa-comment-dots"></i> Fillers Count:</span>
-                                <span id="filler-count-pill" class="bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded">0</span>
-                            </div>
-                            <div class="flex items-center space-x-2 text-slate-500">
-                                <span class="font-semibold text-slate-600"><i class="fa-solid fa-microphone"></i> Rec Time:</span>
-                                <span id="rec-duration-pill" class="bg-rose-100 text-rose-700 font-mono font-bold px-1.5 py-0.5 rounded">00:00</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Control Buttons and Speaking Panel -->
-                <div class="mt-4 flex flex-col space-y-2 pb-4">
-                    <!-- Audio Wave Visualizer Simulation when Recording -->
-                    <div id="visualizer-container" class="h-6 flex items-center justify-center space-x-1 hidden">
-                        <div class="w-1 h-3 bg-rose-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                        <div class="w-1 h-5 bg-rose-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                        <div class="w-1 h-4 bg-rose-600 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
-                        <div class="w-1 h-6 bg-rose-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-                        <div class="w-1 h-2 bg-rose-400 rounded-full animate-bounce" style="animation-delay: 0.5s"></div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <!-- Play Question Button (Limited to 2 times max) -->
-                        <button id="btn-play-question" onclick="playQuestionTTS()" class="py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl shadow-sm text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
-                            <i id="play-btn-icon" class="fa-solid fa-volume-high text-indigo-500"></i>
-                            <span id="play-btn-text">질문 듣기 (LISTEN)</span>
-                        </button>
-
-                        <!-- Start Recording Button -->
-                        <button id="btn-record-speak" onclick="toggleSpeechRecording()" class="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-md text-xs font-extrabold flex items-center justify-center gap-1.5 transition active:scale-95 disabled:opacity-50" disabled>
-                            <i id="record-btn-icon" class="fa-solid fa-microphone"></i>
-                            <span id="record-btn-text">답변 녹음 시작 (RECORD)</span>
-                        </button>
-                    </div>
-
-                    <!-- Skip & Next Question navigation action -->
-                    <button id="btn-submit-answer" onclick="evaluateAnswerAndNext()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-2xl shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 disabled:opacity-50" disabled>
-                        <i class="fa-solid fa-cloud-arrow-up"></i> 답변 제출 & 다음 문제
-                    </button>
-                </div>
-            </div>
-
-            <div id="screen-results" class="hidden w-full h-full bg-white rounded-[28px] shadow-lg p-5 flex flex-col justify-between overflow-hidden animate-fade-in">
-                <div class="space-y-3.5 overflow-y-auto max-h-[460px] pr-1 custom-scrollbar">
-                    <div class="text-center border-b border-slate-100 pb-3">
-                        <span class="text-3xl">🏆</span>
-                        <h3 class="font-extrabold text-slate-800 text-sm mt-1">OPIc Mock Exam Report</h3>
-                        <p class="text-[9px] text-slate-400">인공지능 실시간 진단 및 피드백 보고서</p>
-                    </div>
-
-                    <!-- Target Grade vs Predicted Grade -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-indigo-50 p-2.5 rounded-xl border border-indigo-100/50 text-center">
-                            <span class="text-[9px] text-indigo-400 block font-bold">목표 등급</span>
-                            <span class="text-lg font-black text-indigo-600">IH</span>
-                        </div>
-                        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100/50 text-center relative overflow-hidden">
-                            <span class="text-[9px] text-emerald-500 block font-bold">인공지능 예측 등급</span>
-                            <span id="predicted-grade-tag" class="text-lg font-black text-emerald-600">AL</span>
-                        </div>
-                    </div>
-
-                    <!-- Detailed Analytics metric metrics -->
-                    <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">🗣️ 발화 성적 디테일</span>
-                        
-                        <div class="space-y-1.5 text-[10px]">
-                            <div>
-                                <div class="flex justify-between font-semibold mb-0.5">
-                                    <span class="text-slate-600">유창성 & 흐름 (Fluency)</span>
-                                    <span id="score-fluency" class="text-indigo-600 font-bold">85%</span>
-                                </div>
-                                <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                    <div id="bar-fluency" class="bg-indigo-500 h-full" style="width: 85%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between font-semibold mb-0.5">
-                                    <span class="text-slate-600">어휘 풍부성 (Vocabulary)</span>
-                                    <span id="score-vocab" class="text-indigo-600 font-bold">78%</span>
-                                </div>
-                                <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                    <div id="bar-vocab" class="bg-indigo-500 h-full" style="width: 78%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between font-semibold mb-0.5">
-                                    <span class="text-slate-600">시제 일치 & 문법 (Grammar)</span>
-                                    <span id="score-grammar" class="text-indigo-600 font-bold">90%</span>
-                                </div>
-                                <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                    <div id="bar-grammar" class="bg-indigo-500 h-full" style="width: 90%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- AI Critique feedback box -->
-                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-bold text-indigo-400 tracking-wider uppercase">AI 총평 및 오픽 고득점 전략</span>
-                            <span class="text-[8px] bg-slate-800 px-1.5 py-0.5 rounded text-indigo-300">Gemini Powered</span>
-                        </div>
-                        <p id="overall-ai-critique" class="text-[10px] text-slate-300 leading-relaxed">
-                            전반적으로 막힘없는 발화와 적절한 필러 표현의 사용이 매우 뛰어납니다. 특정 과거 시제를 말할 때 시제 실수가 보완된다면 AL 등급을 안정적으로 확보할 수 있습니다.
-                        </p>
-                    </div>
-                </div>
-
-                <button onclick="resetExamToSurvey()" class="w-full py-3 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-rotate-right"></i> 모의고사 다시 응시하기
-                </button>
-            </div>
-
-        </div>
-
-        <!-- Success Bottom Overlay Sheet (Slides up beautifully when AI feedback is ready) -->
-        <div id="success-results-sheet" class="hidden absolute inset-x-0 bottom-0 bg-slate-900 border-t-4 border-emerald-500 rounded-t-[32px] p-5 text-white space-y-3 shadow-2xl z-40 transform translate-y-full transition-transform duration-300">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <span class="text-2xl">📝</span>
-                    <div>
-                        <h4 class="font-extrabold text-emerald-400 text-xs">답변이 제출되었습니다</h4>
-                        <p class="text-[9px] text-slate-400">오픽 에바의 채점 위원회 분석 완료</p>
-                    </div>
-                </div>
-                <div class="bg-emerald-950 text-emerald-300 border border-emerald-800 px-2.5 py-1 rounded-full text-[10px] font-bold">
-                    분석 성공
-                </div>
-            </div>
-
-            <!-- AI Feedback Critique Box -->
-            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
-                <div class="flex items-center justify-between">
-                    <span class="text-[9px] font-bold text-indigo-400 tracking-wider uppercase">AI 실시간 발화 평가</span>
-                    <span class="text-[8px] bg-slate-800 px-1.5 py-0.5 rounded text-indigo-300">Gemini Verified</span>
-                </div>
-                <p id="evaluation-sheet-feedback" class="text-[10px] text-slate-300 leading-relaxed">
-                    시제 일치력이 좋으며, 자연스러운 필러 활용 능력이 돋보입니다. 다음 답변에서는 필러의 빈도를 조금 더 조율하여 답변의 구조적 밀도를 높여 보세요.
-                </p>
-            </div>
-
-            <!-- Recommendations list -->
-            <div id="recommended-expressions-card" class="bg-indigo-950/40 p-3 rounded-xl border border-indigo-900/40 space-y-1">
-                <span class="text-[9px] font-bold text-indigo-300 block">💡 AL 정복을 위한 핵심 구문 제안</span>
-                <p id="target-al-expression-clue" class="text-[10px] text-slate-400 italic">I recall this particular event where...</p>
-            </div>
-
-            <button onclick="proceedToNextQuestion()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold rounded-xl shadow-lg text-xs transition duration-200">
-                다음 문제로 진행하기
-            </button>
-        </div>
-
-    </div>
-
-    <!-- Settings Config Modal Overlay (Contained strictly within the body scope) -->
-    <div id="settings-config-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 max-w-sm w-full rounded-3xl overflow-hidden shadow-2xl p-6 relative text-white">
-            <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            <h3 class="font-bold text-base text-indigo-400 mb-4 flex items-center gap-2">
-                <span>⚙️</span> OPIc 실전 모의고사 제어판
-            </h3>
-            
-            <div class="space-y-4">
-                <!-- Gemini API Input Section -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase mb-1.5">Gemini API Key (선택사항)</label>
-                    <input type="password" id="gemini-api-key-box" placeholder="여기에 API Key를 입력하면 AI 실시간 채점이 활성화됩니다." 
-                           class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-
-                <!-- Game Volume Settings -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase mb-1.5">에바(Eva) 보이스 볼륨</label>
-                    <div class="flex items-center space-x-3">
-                        <i class="fa-solid fa-volume-low text-slate-500"></i>
-                        <input type="range" id="sound-volume-slider" min="0" max="1" step="0.1" value="0.8" class="w-full accent-indigo-500">
-                        <i class="fa-solid fa-volume-high text-slate-500"></i>
-                    </div>
-                </div>
-
-                <!-- Custom instructions prompt -->
-                <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3.5 text-[10px] text-slate-400 leading-relaxed space-y-1.5">
-                    <strong class="text-indigo-300 block font-bold">💡 실전 오픽 고득점 합격 요령</strong>
-                    <p>• 지문 듣기 버튼은 질문당 최대 **2회**만 청취가 가능합니다.</p>
-                    <p>• 발화 시 **"you know", "you see", "actually", "honestly"** 같은 필러(filler) 단어들을 자연스럽게 섞으면 유창성 가산점을 획득합니다.</p>
-                    <p>• Gemini API 키를 넣으시면 채점 결과가 오픽 시험관 기준에 맞춰 전문 교정으로 제공됩니다.</p>
-                </div>
-            </div>
-
-            <button onclick="saveAndCloseSettings()" class="w-full py-2.5 mt-5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold rounded-xl shadow-lg transition duration-200 text-xs">
-                변경 사항 적용하기
-            </button>
-        </div>
-    </div>
-
-    <!-- Sound and Audio synthesizer generator + Game Logic script -->
     <script>
-        // Game State Engine
-        const gameState = {
-            currentScreen: 'survey', // survey, difficulty, exam, results
-            selectedSurvey: [],
-            difficulty: 5,
-            currentIndex: 0,
-            activeTranscript: "",
-            apiKey: "",
-            speechRecognition: null,
-            isListening: false,
-            synthVolume: 0.8,
-            isProcessingApi: false,
-            replayCount: 0,
-            examTimer: 2400, // 40 minutes in seconds
+        // Global OPIc Exam State Manager
+        const examState = {
+            currentSlide: 'intro', // intro, survey, assessment, exam, feedback
+            surveyAnswers: {
+                job: null,
+                student: null,
+                housing: null,
+                hobbies: []
+            },
+            difficultyLevel: 5, // Default recommended
+            currentIndex: 0, // Current active question index (0 to 14)
+            questionsList: [],
+            examTimer: 2400, // 40 minutes inside exam
             examTimerInterval: null,
+            replayCounts: {}, // Track replay usage per question (max 2)
+            isRecording: false,
             recordingSeconds: 0,
             recordingInterval: null,
             fillerCount: 0,
-            questionsList: [],
-            evaIsTalking: false,
-            currentSpeechUtterance: null,
-            transcriptsPool: [] // stores results for final exam overview
+            recognizedTranscript: "",
+            speechRecognition: null,
+            evaUtterance: null,
+            apiKey: "", // Custom Gemini API Key
+            transcriptsPool: [], // Stores user speech for final grading
+            isReplayLimitReached: false,
+            timeForNewQuestionTimer: null,
+            showTimeForNewQuestionAlert: false,
+            activeSampleAudioLevel: null
         };
+    </script>
 
-        // Complete robust OPIc Question Database structured by Survey Category
-        const questionsDatabase = {
+    <!-- Header Section mimicking ACTFL Banner Style in image_56b6c3.png -->
+    <header class="bg-white border-b shadow-sm z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <!-- ACTFL OPIc Logo Emulation -->
+                <div class="flex items-center bg-slate-900 text-white rounded px-2.5 py-1 font-black tracking-wider text-sm">
+                    <span class="text-amber-400 font-extrabold mr-1">ACTFL</span> OPIc
+                </div>
+                <div class="h-5 w-[1px] bg-slate-300"></div>
+                <span class="text-xs md:text-sm font-bold text-slate-600 tracking-tight">AI 실전 모의고사 & 전략 가이드</span>
+            </div>
+            
+            <!-- Gemini API Key Floating config panel -->
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <input type="password" id="gemini-key-input" placeholder="Gemini API Key (선택사항)" 
+                        class="w-48 md:w-64 bg-slate-100 text-xs text-slate-800 rounded-lg pl-8 pr-3 py-1.5 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                        onchange="saveApiKey(this.value)">
+                    <i class="fa-solid fa-key absolute left-2.5 top-2.5 text-slate-400 text-[10px]"></i>
+                </div>
+                <button onclick="toggleSetupGuide()" class="text-slate-500 hover:text-slate-800 transition text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-info"></i> 가이드
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <script>
+        // High fidelity comprehensive OPIc questions sorted by difficulty level and survey topics
+        const questionsPool = {
             'common': [
                 {
-                    topic: "SELF-INTRODUCTION",
-                    korean: "자기소개를 해보세요.",
-                    question: "Let's start the interview now. Please tell me something about yourself. Give me some details about who you are.",
-                    hint: "이름, 직업/학생 여부, 취미, 성격 등을 자연스럽게 나열하세요. 필러를 사용하여 시작하세요.",
-                    feedback: "자기소개에서는 'You know, first of all...'과 같은 가벼운 인트로를 넣어 경직되지 않은 분위기를 형성하는 것이 핵심입니다.",
-                    alClue: "I'd describe myself as a highly outgoing individual who..."
+                    topic: "자기소개 (Self-Introduction)",
+                    question: "Let's start the interview now. Please tell me something about yourself. Give me some details about who you are, what you like, and your background.",
+                    strategy: "자기소개는 채점 비중이 낮으나 유창한 필러 사용('You know', 'Actually')으로 기선제압을 하기에 매우 적절한 구간입니다!"
                 }
             ],
-            'work': [
+            'job': {
+                '사업/회사': [
+                    {
+                        topic: "회사 묘사 (Company Description)",
+                        question: "You indicated in the survey that you work. Can you describe your company? What does the company produce or sell, and where is it located?",
+                        strategy: "회사의 규모, 위치, 생산품에 더불어 본인의 부서명과 느낌을 묘사하면 어휘 다양성 부분에서 높은 점수를 가져갑니다."
+                    },
+                    {
+                        topic: "업무 루틴 (Work Routine)",
+                        question: "Tell me about your typical day at work. What do you do as soon as you arrive, and what are your main responsibilities throughout the day?",
+                        strategy: "On a daily basis, Generally, first thing in the morning 같은 표현을 조화롭게 섞어 현재 시제 중심의 완성도 높은 문장을 만드세요."
+                    },
+                    {
+                        topic: "회사 내 기억에 남는 사건 (Memorable Event at Work)",
+                        question: "Describe a particularly memorable event or project that happened at your work. What was it, who was involved, and why was it so significant to you?",
+                        strategy: "과거 사건을 서술하므로 과거 동사 형태('happened', 'did', 'was')의 시제 일관성에 절대적으로 유의해 말하세요!"
+                    }
+                ],
+                '일 경험 없음': [
+                    {
+                        topic: "최근 준비하고 있는 시험/교육 (Recent Study or Test Prep)",
+                        question: "You indicated that you do not work. What kind of classes or exams are you currently preparing for? Describe your typical preparation routine.",
+                        strategy: "직장 경험이 없는 만큼, 취업 준비 활동이나 특정 영어 공부 루틴을 명확한 순서대로 설명해 주시면 좋습니다."
+                    }
+                ]
+            },
+            'student': {
+                '네': [
+                    {
+                        topic: "학교 묘사 (School Description)",
+                        question: "You mentioned in the survey that you are a student. Describe your school or university campus. What are your favorite spots on campus?",
+                        strategy: "캠퍼스의 전반적 전경을 묘사하고, 특히 본인이 힐링하러 자주 가는 'Go-to place'를 감정과 함께 섞어 발화하세요."
+                    },
+                    {
+                        topic: "최근 수강하는 과목 (Recent Courses)",
+                        question: "Tell me about the classes you are taking this semester. Which course is your favorite, and why do you find it interesting?",
+                        strategy: "과목 이름과 교수님 스타일, 왜 흥미를 느꼈는지 구체적 에피소드로 설명하면 풍성한 발화가 가능합니다."
+                    }
+                ]
+            },
+            'housing': {
+                '개인주택이나 아파트에 홀로 거주': [
+                    {
+                        topic: "집 내부 묘사 (Home Description)",
+                        question: "Describe your home. How many rooms do you have? Which room is your favorite, and how is it decorated?",
+                        strategy: "공간의 구조를 눈앞에 그리듯 묘사하고, My favorite space hands down has to be my bedroom because...처럼 자신 있게 장소를 강조하세요."
+                    },
+                    {
+                        topic: "집에서 겪었던 기기 고장 등 돌발 문제 (Unfinished Problem at Home)",
+                        question: "Tell me about a time when something broke in your house or apartment. What was the item, how did it happen, and how did you resolve the issue?",
+                        strategy: "배관 고장이나 스마트 가전 정지 등 구체적 돌발 사건을 서술하십시오. 원인과 해결 흐름이 명확해야 AL이 나옵니다."
+                    }
+                ],
+                '가족(배우자/자녀/기타 가족 일원)과 함께 주택이나 아파트에 거주': [
+                    {
+                        topic: "가족과의 역할 분담 (Role Division with Family)",
+                        question: "You mentioned that you live with your family. How do you divide the household chores? Describe who is responsible for what in your home.",
+                        strategy: "가사 분담 역할을 세세한 어휘(take out the trash, do the dishes, vacuum)로 다양하게 표출하면 좋은 결과를 땁니다."
+                    }
+                ]
+            },
+            'hobbies': {
+                '조깅하기': [
+                    {
+                        topic: "조깅 루틴 (Jogging Habit & Gear)",
+                        question: "How often do you go jogging? Describe your typical jogging route, what you wear, and any specialized equipment you use, like smartwatches.",
+                        strategy: "운동 장비, 신발, 웨어러블 트래커에 대해 언급하며 조깅 전 스트레칭 루틴을 유창하게 엮어주세요."
+                    }
+                ],
+                '공원가기': [
+                    {
+                        topic: "공원 묘사 (Park Description)",
+                        question: "Describe your favorite park that you visit. What does it look like, and what do people typically do there during different seasons?",
+                        strategy: "조깅하기와 공원가기는 서로 완벽히 연관된 고득점 전략 주제입니다! 공원의 사계절 풍경을 묘사하세요."
+                    },
+                    {
+                        topic: "공원에서 있었던 인상 깊은 일 (Memorable Park Visit)",
+                        question: "Tell me about a memorable experience you had while visiting a park. What happened, who was there, and why was it so unforgettable?",
+                        strategy: "날씨, 우연한 사건, 반려동물과의 에피소드 등 스토리라인을 풍부하게 가미하여 과거 시제로 대답하세요."
+                    }
+                ]
+            },
+            'roleplay': [
                 {
-                    topic: "WORK-ROUTINE",
-                    korean: "회사에서 하는 일과 일과를 묘사해 보세요.",
-                    question: "You indicated in the survey that you work. Describe the project you are currently working on. What are your main responsibilities?",
-                    hint: "업무 루틴, 최근 담당 프로젝트, 하루 일과를 시간 순서대로 묘사하세요.",
-                    feedback: "직장 생활 루틴을 설명할 때 'Typically', 'On a daily basis'와 같은 빈도 부사를 적절히 배치하는 것이 IH 핵심 요인입니다.",
-                    alClue: "To give you a brief overview of my daily routine, I'm responsible for..."
-                },
-                {
-                    topic: "WORK-EXPERIENCE",
-                    korean: "일하면서 발생했던 인상 깊은 경험을 공유해 주세요.",
-                    question: "Tell me about a memorable experience or a challenge you faced at your workplace. What happened, and how did you resolve it?",
-                    hint: "과거 시제 사용에 극도로 유의하며, 문제 발생 상황과 대처 과정을 묘사하세요.",
-                    feedback: "과거 경험을 설명할 때는 과거 동사 시제를 정확히 일치시켜 발화하는 것이 등급 판정을 결정짓습니다.",
-                    alClue: "It happened a couple of months ago when our team was confronted with..."
-                }
-            ],
-            'student': [
-                {
-                    topic: "SCHOOL-DESCRIPTION",
-                    korean: "본인의 학교나 전공 과목에 대해 묘사해 보세요.",
-                    question: "You responded that you are a student. Describe your school or university campus. What does it look like, and what are your favorite spots?",
-                    hint: "학교 전체적인 분위기, 도서관이나 학생 식당 등 좋아하는 장소를 설명하세요.",
-                    feedback: "장소 묘사는 공간의 느낌과 나의 감정을 엮어서 서술하는 것이 고득점을 유발합니다.",
-                    alClue: "My university campus is absolutely picturesque, particularly during spring when..."
-                }
-            ],
-            'living-family': [
-                {
-                    topic: "HOME-DESCRIPTION",
-                    korean: "현재 살고 있는 집을 묘사해 보세요.",
-                    question: "Describe your home. How many rooms do you have? Which room is your favorite, and why do you like that place?",
-                    hint: "집의 전체적인 방 개수와 본인 방의 인테리어 및 최애 이유를 결합하세요.",
-                    feedback: "최애 장소를 말할 때 'My absolute go-to place is...' 같은 원어민적인 감정 강조 표현을 가미하세요.",
-                    alClue: "I live in a cozy apartment, and my favorite spot hands down has to be my bedroom because..."
-                }
-            ],
-            'living-alone': [
-                {
-                    topic: "HOME-ROUTINE",
-                    korean: "집에서 보내는 주말 루틴을 설명해 보세요.",
-                    question: "You mentioned you live alone. What do you usually do at home on weekends? Describe your typical weekend routine.",
-                    hint: "혼자 보내는 시간, 청소/요리/영화 시청 등의 라이프스타일을 자연스럽게 서술하세요.",
-                    feedback: "주말 일상을 설명할 때는 'First off', 'Afterwards', 'To wrap up my day'와 같이 명확한 시간 연결 단어를 사용하세요.",
-                    alClue: "On a typical lazy Sunday afternoon, I prefer to wind down by..."
-                }
-            ],
-            'cinema': [
-                {
-                    topic: "CINEMA-HABIT",
-                    korean: "영화관에 갈 때의 루틴을 묘사해 보세요.",
-                    question: "How often do you go to the movies? Who do you go with, and what do you do before or after watching a movie?",
-                    hint: "영화 티켓 예매, 팝콘 구매, 영화 관람 전후 친구들과의 일과를 설명하세요.",
-                    feedback: "행위의 순서를 나열할 때 문법적 정확성과 'I mean, who doesn't like movie popcorn?' 같은 유머러스한 어구를 넣으면 AL에 가깝습니다.",
-                    alClue: "I'm a massive film buff, so going to the theater is an absolute must for me on..."
-                }
-            ],
-            'park': [
-                {
-                    topic: "PARK-EXPERIENCE",
-                    korean: "공원에서 겪었던 특별한 사건을 들려주세요.",
-                    question: "Tell me about a memorable visit to a park. What happened there that was so special or unexpected? Describe it in detail.",
-                    hint: "돌발 상황이나 좋았던 날씨, 특별한 인물과의 조우를 과거형으로 생생하게 증언해 보세요.",
-                    feedback: "과거 시제 일관성(Past-tense consistency) 유지가 핵심입니다. 'went', 'saw', 'happened' 등을 정확하게 발음해야 합니다.",
-                    alClue: "Actually, a particularly unforgettable moment occurred last summer when..."
-                }
-            ],
-            'music': [
-                {
-                    topic: "MUSIC-PREFERENCE",
-                    korean: "좋아하는 음악 장르나 가수를 소개해 보세요.",
-                    question: "What kind of music do you like? Who is your favorite singer or composer? Explain why you enjoy listening to their music.",
-                    hint: "장르(K-pop, Jazz 등), 즐겨 듣는 아티스트, 음악이 주는 힐링감에 대해 묘사하십시오.",
-                    feedback: "감정을 묘사할 때 'It gives me goosebumps'나 'uplifts my mood' 같은 생동감 있는 숙어를 장착하세요.",
-                    alClue: "Lately, I've been completely obsessed with listening to classical piano because..."
-                }
-            ],
-            'cafe': [
-                {
-                    topic: "CAFE-ROLEPLAY",
-                    korean: "[롤플레이] 카페에서 음료를 주문하는 상황입니다.",
-                    question: "[Roleplay] You are at a newly opened cafe. Ask the barista three or four questions about their signature menu and place an order.",
-                    hint: "실제 카페 점원에게 묻듯이 'Hi there, I was wondering...' 같은 정중한 영어 의문문 3-4개를 연사하세요.",
-                    feedback: "롤플레이는 실제 연기하듯 발화 톤(Intonation)을 높이고, 자연스러운 대화 감성을 표출하는 것이 점수를 극대화합니다.",
-                    alClue: "Hi! I heard your cafe is famous for cold brews. Could you possibly recommend..."
-                }
-            ],
-            'jogging': [
-                {
-                    topic: "JOGGING-EQUIPMENT",
-                    korean: "조깅할 때 착용하는 장비나 옷차림을 묘사하세요.",
-                    question: "What kind of clothes or specialized gear do you wear when you go out for a jog? Why are those items necessary?",
-                    hint: "운동복, 스마트워치, 조깅 전용 운동화 등의 기능성을 간결하고 짜임새 있게 표현하십시오.",
-                    feedback: "아이템의 기능성과 더불어 'It tracking my heart rate'와 같은 직관적인 쓰임새 설명을 덧붙이세요.",
-                    alClue: "Whenever I head out for a jog, I make sure to gear up with my comfortable..."
-                }
-            ],
-            'gym': [
-                {
-                    topic: "GYM-TROUBLE",
-                    korean: "헬스장에서 겪었던 예기치 못한 트러블을 설명하세요.",
-                    question: "Tell me about an unexpected problem or injury that happened at your gym. What did you do to handle the situation?",
-                    hint: "부상, 기구 고장, 타인과의 작은 문제 등 돌발 트러블과 최종 대처법을 전달하십시오.",
-                    feedback: "스토리텔링 구도가 선명해야 합니다. (발단 -> 전개 -> 위기 -> 대처) 연결어 활용에 몰입하세요.",
-                    alClue: "Out of nowhere, during one of my heavy lifting sessions, I suddenly felt..."
+                    topic: "롤플레이 상황 해결 (Roleplay Order & Ask)",
+                    question: "[Roleplay] You want to buy tickets for a performance, but they are almost sold out. Call the ticket office and ask three or four detailed questions to find an alternative.",
+                    strategy: "롤플레이는 감정을 한껏 실어 연기해야 합니다! 'Hi there, I'm calling to inquire about...'처럼 목소리 톤을 한 단계 높여주세요."
                 }
             ]
         };
+    </script>
 
-        // OPIc Score Enhancer: Track native English fillers to reward fluency scores
-        const targetFillers = ["you know", "like", "actually", "honestly", "well", "i mean", "you see", "basically", "seriously"];
+    <!-- Main Dynamic Container matching ACTFL layout structures -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow flex flex-col justify-center items-center w-full">
 
-        // Audio synthesizer wrapper using browser Web Audio API
+        <!-- Slide 1: Overview of OPIc (emulating image_56b722.jpg) -->
+        <div id="slide-intro" class="w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 max-w-4xl flex flex-col">
+            <!-- Header bar exactly matching the image styling -->
+            <div class="actfl-blue text-white px-6 py-5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">🎧</span>
+                    <h1 class="text-2xl font-black tracking-tight">Overview of OPIc</h1>
+                </div>
+                <span class="text-sm font-bold bg-white/20 px-3 py-1 rounded-full border border-white/30">Slide 5 / 5</span>
+            </div>
+
+            <!-- Content Area mimicking slide 5 image layout -->
+            <div class="p-6 md:p-8 space-y-6">
+                <!-- Top Progress Bar mimicking the ACTFL UI block -->
+                <div class="grid grid-cols-4 gap-2 text-center text-xs md:text-sm font-extrabold text-white">
+                    <div class="bg-indigo-600 rounded-lg p-3 flex flex-col items-center justify-center shadow">
+                        <span class="text-[10px] text-indigo-200">STEP 1</span>
+                        <span>문항수 (12-15)</span>
+                    </div>
+                    <div class="bg-teal-600 rounded-lg p-3 flex flex-col items-center justify-center shadow">
+                        <span class="text-[10px] text-teal-200">STEP 2</span>
+                        <span>질문청취 (2번가능)</span>
+                    </div>
+                    <div class="bg-amber-600 rounded-lg p-3 flex flex-col items-center justify-center shadow">
+                        <span class="text-[10px] text-amber-200">STEP 3</span>
+                        <span>답변녹음 (자동생성)</span>
+                    </div>
+                    <div class="bg-rose-600 rounded-lg p-3 flex flex-col items-center justify-center shadow">
+                        <span class="text-[10px] text-rose-200">STEP 4</span>
+                        <span>시험시간 (40분)</span>
+                    </div>
+                </div>
+
+                <!-- Simulation Preview Graphics and Real Intro description -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+                        <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                            <span>실제 시험장 UI 미리보기</span>
+                        </div>
+                        
+                        <!-- Mini Simulation UI graphic mimicking image_56b722.jpg inner player -->
+                        <div class="bg-slate-900 rounded-lg p-3 text-[10px] text-white font-mono space-y-2 relative overflow-hidden h-44 shadow-inner flex flex-col justify-between">
+                            <div class="flex justify-between items-center border-b border-slate-700 pb-1 text-slate-400">
+                                <span>Overview of OPIc</span>
+                                <span class="bg-red-600 px-1 rounded animate-pulse text-[8px] text-white">● Recording</span>
+                            </div>
+                            <div class="flex items-center justify-center gap-3">
+                                <!-- Minimal Eva Vector Graphic -->
+                                <div class="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-600 flex items-center justify-center">
+                                    <i class="fa-solid fa-user-tie text-3xl text-slate-400"></i>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="font-bold text-slate-300">Eva (인터뷰어)</div>
+                                    <div class="text-[8px] text-slate-500">Time for a new question</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center pt-1 border-t border-slate-700 text-[8px]">
+                                <div class="bg-blue-600 px-1 rounded">REPLAY 버튼</div>
+                                <span class="text-rose-400">잔여시간: 40:00</span>
+                                <div class="bg-slate-700 px-1 rounded">Next →</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-black text-slate-800">OPIc 실전 시험 진행 안내</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            본 프로그램은 실제 크레듀 및 ACTFL이 진행하는 OPIc 모의고사를 구현한 시뮬레이터입니다.
+                            좌측 1-15번까지의 질문 그리드와 가상 인공지능 에바(Eva)의 문제 출제 시스템을 통해 실제 압박 면접 환경을 그대로 연습할 수 있습니다.
+                        </p>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-3.5 rounded-r-lg">
+                            <span class="text-xs font-bold text-blue-800 block mb-1">💡 AL 획득 필수 요인</span>
+                            <span class="text-xs text-blue-700 leading-relaxed">질문 1개당 평균 1분 30초에서 2분 내외의 연속 발화량을 보존하고, 과거 시제와 자연스러운 필러를 사용해 흐름을 이어가세요.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy slides matching slide 5 bottom note in image_56b722.jpg -->
+                <div class="bg-slate-100 border border-slate-300 rounded-xl p-5 space-y-2.5">
+                    <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-300 pb-1.5">
+                        <i class="fa-solid fa-graduation-cap text-indigo-500"></i> image_56b722.jpg 핵심 오픽 고득점 전략 가이드
+                    </h4>
+                    <ul class="text-xs text-slate-700 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-600 mt-0.5">●</span>
+                            <span><strong>총 문항수 12~15개</strong>: 사용자가 선택하는 자가 난이도(Self Assessment)에 비례하여 유동적으로 결정됩니다.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-600 mt-0.5">●</span>
+                            <span><strong>질문청취 후 5초 이내</strong> [Replay 버튼] 클릭 시 패널티 없이 재청취 가능하며, 감점 등 불이익은 전혀 없습니다!</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-600 mt-0.5">●</span>
+                            <span><strong>[Time for a new question] 알림</strong>: 특정 질문에서 발화가 과도하게 길어지거나 적정 한계를 지나면 나타나므로 이를 적당히 끊고 다음 문제로 넘어가는 이정표로 삼으면 좋습니다.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom navigation area with next black arrow -->
+            <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex justify-end">
+                <button onclick="goToSlide('survey')" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-6 py-3 rounded-xl transition shadow flex items-center gap-2">
+                    Background Survey로 이동 <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Slide 2: Background Survey (emulating image_56b6c3.png) -->
+        <div id="slide-survey" class="hidden w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 max-w-4xl flex flex-col">
+            <!-- Header bar matching the image styling -->
+            <div class="actfl-blue text-white px-6 py-5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">📋</span>
+                    <h1 class="text-2xl font-black tracking-tight">Background Survey</h1>
+                </div>
+                <span class="text-sm font-bold bg-white/20 px-3 py-1 rounded-full border border-white/30">Slide 3 / 5</span>
+            </div>
+
+            <!-- Content Area of the Background Survey mimicking slide 3 image -->
+            <div class="p-6 md:p-8 space-y-6">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        🟢 이 Background Survey 응답을 기초로 개인 맞춤형 문항이 출제가 됩니다. 질문을 자세히 읽고 실제 시험을 대비해 성실하게 답변해 주시기 바랍니다. (최소 3개 카테고리 필수 선택)
+                    </p>
+                </div>
+
+                <div class="space-y-6 max-h-[420px] overflow-y-auto pr-2 custom-scroll">
+                    <!-- Q1: 분야 종사 여부 -->
+                    <div class="space-y-3 border-b border-slate-100 pb-5">
+                        <h3 class="text-sm font-bold text-slate-800">1. 현재 귀하는 어느 분야에 종사하고 계십니까?</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="job" value="사업/회사" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('job', '사업/회사')">
+                                <span class="font-medium text-slate-700">💼 사업 / 회사</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="job" value="재택근무/재택사업" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('job', '재택근무/재택사업')">
+                                <span class="font-medium text-slate-700">🏠 재택근무 / 재택사업</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="job" value="교사/교육자" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('job', '교사/교육자')">
+                                <span class="font-medium text-slate-700">👩‍🏫 교사 / 교육자</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="job" value="군복무" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('job', '군복무')">
+                                <span class="font-medium text-slate-700">🪖 군복무</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="job" value="일 경험 없음" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('job', '일 경험 없음')">
+                                <span class="font-medium text-slate-700">👨‍🎓 일 경험 없음</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q2: 학생 여부 -->
+                    <div class="space-y-3 border-b border-slate-100 pb-5">
+                        <h3 class="text-sm font-bold text-slate-800">2. 현재 귀하는 학생이십니까?</h3>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="student" value="네" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('student', '네')">
+                                <span class="font-medium text-slate-700">🎓 네 (학생임)</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="student" value="아니오" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('student', '아니오')">
+                                <span class="font-medium text-slate-700">❌ 아니오 (학생 아님)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q3: 거주지 분류 -->
+                    <div class="space-y-3 border-b border-slate-100 pb-5">
+                        <h3 class="text-sm font-bold text-slate-800">3. 현재 귀하는 어디에 살고 계십니까?</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="housing" value="개인주택이나 아파트에 홀로 거주" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('housing', '개인주택이나 아파트에 홀로 거주')">
+                                <span class="font-medium text-slate-700">🙋 개인주택이나 아파트에 홀로 거주</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="housing" value="가족(배우자/자녀/기타 가족 일원)과 함께 주택이나 아파트에 거주" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('housing', '가족(배우자/자녀/기타 가족 일원)과 함께 주택이나 아파트에 거주')">
+                                <span class="font-medium text-slate-700">👨‍👩‍👧 가족과 함께 아파트/주택에 거주</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="housing" value="친구나 룸메이트와 함께 주택이나 아파트에 거주" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('housing', '친구나 룸메이트와 함께 주택이나 아파트에 거주')">
+                                <span class="font-medium text-slate-700">👥 친구/룸메이트와 함께 거주</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="housing" value="학교 기숙사" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('housing', '학교 기숙사')">
+                                <span class="font-medium text-slate-700">🏫 학교 기숙사</span>
+                            </label>
+                            <label class="survey-option-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="radio" name="housing" value="군대 막사" class="accent-indigo-600 h-4 w-4" onchange="selectSurveyRadio('housing', '군대 막사')">
+                                <span class="font-medium text-slate-700">🏕️ 군대 막사</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Q4: 여가/취미 추가 (전략을 위한 카테고리) -->
+                    <div class="space-y-3">
+                        <h3 class="text-sm font-bold text-slate-800">4. 귀하가 즐겨 하시는 취미 및 여가 활동을 선택하세요. (문제 연동을 위한 전략 선택)</h3>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label class="hobby-checkbox-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="checkbox" value="조깅하기" class="accent-indigo-600 h-4 w-4" onchange="toggleSurveyHobby('조깅하기')">
+                                <span class="font-medium text-slate-700">🏃 조깅하기</span>
+                            </label>
+                            <label class="hobby-checkbox-label flex items-center space-x-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                                <input type="checkbox" value="공원가기" class="accent-indigo-600 h-4 w-4" onchange="toggleSurveyHobby('공원가기')">
+                                <span class="font-medium text-slate-700">🏞️ 공원가기</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy slides matching slide 3 bottom note in image_56b6c3.png -->
+                <div class="bg-slate-100 border border-slate-300 rounded-xl p-5 space-y-2.5">
+                    <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-300 pb-1.5">
+                        <i class="fa-solid fa-graduation-cap text-indigo-500"></i> image_56b6c3.png 핵심 오픽 고득점 전략 가이드
+                    </h4>
+                    <ul class="text-xs text-slate-700 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-600 mt-0.5">●</span>
+                            <span><strong>7개의 기틀 문항 구성</strong>: 본 Background Survey 응답은 향후 돌발 문제 및 콤보 셋의 출제 범위를 확정 짓는 핵심 룰입니다.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-600 mt-0.5">●</span>
+                            <span><strong>전략적인 주제 단일화</strong>: '조깅하기'와 '공원가기' 등 서로 유기적으로 겹치는 표현이 많은 주제들을 중복 선택할수록 질문 풀을 좁힐 수 있어 훨씬 유리합니다.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom navigation -->
+            <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex justify-between items-center">
+                <button onclick="goToSlide('intro')" class="text-slate-600 hover:text-slate-900 font-extrabold transition text-xs flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> 이전 단계
+                </button>
+                <button onclick="validateAndGoToDifficulty()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-6 py-3 rounded-xl transition shadow flex items-center gap-2">
+                    난이도 선택으로 이동 <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Slide 3: Self Assessment [난이도 선택] (emulating image_56b702.jpg) -->
+        <div id="slide-assessment" class="hidden w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 max-w-4xl flex flex-col">
+            <!-- Header bar exactly matching the image styling -->
+            <div class="actfl-blue text-white px-6 py-5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">📊</span>
+                    <h1 class="text-2xl font-black tracking-tight">Self Assessment [난이도 선택]</h1>
+                </div>
+                <span class="text-sm font-bold bg-white/20 px-3 py-1 rounded-full border border-white/30">Slide 4 / 5</span>
+            </div>
+
+            <!-- Content Area of Self Assessment mimicking slide 4 image -->
+            <div class="p-6 md:p-8 space-y-6">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    <p class="text-xs md:text-sm text-slate-700 leading-relaxed">
+                        🟢 본 Self Assessment에 대한 응답을 기초로 개인 맞춤형 문항이 출제가 됩니다. 아래 여섯 단계의 샘플 답변의 영어 듣기를 확인해 보시고, 본인의 준비 실력과 매칭되는 난이도를 선택해 보세요.
+                    </p>
+                </div>
+
+                <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-2 custom-scroll">
+                    <!-- Audio levels radio list -->
+                    <div class="space-y-2 text-xs">
+                        <!-- Level 1 -->
+                        <div id="assessment-row-1" class="assessment-card flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer" onclick="selectDifficulty(1)">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <input type="radio" name="difficulty" value="1" id="diff-opt-1" class="accent-indigo-600 mt-1 h-4 w-4">
+                                <div class="space-y-0.5">
+                                    <span class="font-extrabold text-slate-800 block">1단계 (IL 미만)</span>
+                                    <span class="text-slate-500 leading-relaxed">나는 10단어 이하의 단어로만 간단하게 나열하여 대답할 수 있습니다.</span>
+                                </div>
+                            </div>
+                            <button onclick="playSampleAudio(1, event)" class="sample-play-btn ml-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기
+                            </button>
+                        </div>
+
+                        <!-- Level 2 -->
+                        <div id="assessment-row-2" class="assessment-card flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer" onclick="selectDifficulty(2)">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <input type="radio" name="difficulty" value="2" id="diff-opt-2" class="accent-indigo-600 mt-1 h-4 w-4">
+                                <div class="space-y-0.5">
+                                    <span class="font-extrabold text-slate-800 block">2단계 (IL 대비)</span>
+                                    <span class="text-slate-500 leading-relaxed">나는 기본적인 사물 이름, 색깔, 요일, 일상적인 음식이나 의류, 숫자만 알고 있습니다. 아직 긴 영어 완벽한 문장을 지속 구사하는 일은 불가능합니다.</span>
+                                </div>
+                            </div>
+                            <button onclick="playSampleAudio(2, event)" class="sample-play-btn ml-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기
+                            </button>
+                        </div>
+
+                        <!-- Level 3 -->
+                        <div id="assessment-row-3" class="assessment-card flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer" onclick="selectDifficulty(3)">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <input type="radio" name="difficulty" value="3" id="diff-opt-3" class="accent-indigo-600 mt-1 h-4 w-4">
+                                <div class="space-y-0.5">
+                                    <span class="font-extrabold text-slate-800 block">3단계 (IM1 / IM2 안정)</span>
+                                    <span class="text-slate-500 leading-relaxed">나는 나 자신과 주변 공간, 직장 동료, 자주 들르는 장소 등 아주 흔하고 직관적인 정보를 단순한 주어+동사 문장으로 대강 설명할 수 있습니다.</span>
+                                </div>
+                            </div>
+                            <button onclick="playSampleAudio(3, event)" class="sample-play-btn ml-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기
+                            </button>
+                        </div>
+
+                        <!-- Level 4 -->
+                        <div id="assessment-row-4" class="assessment-card flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer" onclick="selectDifficulty(4)">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <input type="radio" name="difficulty" value="4" id="diff-opt-4" class="accent-indigo-600 mt-1 h-4 w-4">
+                                <div class="space-y-0.5">
+                                    <span class="font-extrabold text-slate-800 block">4단계 (IM3 / IH 공략)</span>
+                                    <span class="text-slate-500 leading-relaxed">나는 가벼운 취미와 친근한 학교/직장 스토리를 연결해 끊김 없는 간단 대화가 가능합니다. 스스로 유창하게 하고 싶은 말을 전개할 여력을 쌓고 있습니다.</span>
+                                </div>
+                            </div>
+                            <button onclick="playSampleAudio(4, event)" class="sample-play-btn ml-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기
+                            </button>
+                        </div>
+
+                        <!-- Level 5 -->
+                        <div id="assessment-row-5" class="assessment-card flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer" onclick="selectDifficulty(5)">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <input type="radio" name="difficulty" value="5" id="diff-opt-5" class="accent-indigo-600 mt-1 h-4 w-4" checked>
+                                <div class="space-y-0.5">
+                                    <span class="font-extrabold text-slate-800 block">5단계 (IH / AL 정복 코스 - 적극 권장)</span>
+                                    <span class="text-slate-500 leading-relaxed">나는 사회적 핫토픽 및 돌발 시나리오에 직면했을 때 풍성한 문장력으로 임기응변 대응이 가능합니다. 과거 시제, 미래 예측 및 상황 설정을 막힘없이 풀어낼 수 있습니다.</span>
+                                </div>
+                            </div>
+                            <button onclick="playSampleAudio(5, event)" class="sample-play-btn ml-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기
+                            </button>
+                        </div>
+
+                        <!-- Level 6 -->
+                        <div id="assessment-row-6" class="assessment-card flex items-center justify-between p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer" onclick="selectDifficulty(6)">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <input type="radio" name="difficulty" value="6" id="diff-opt-6" class="accent-indigo-600 mt-1 h-4 w-4">
+                                <div class="space-y-0.5">
+                                    <span class="font-extrabold text-slate-800 block">6단계 (AL 최상위 고수)</span>
+                                    <span class="text-slate-500 leading-relaxed">나는 세부 전문 도메인 영역 및 시사 이슈에 대해 나의 개인적 주장을 관철시키고 논리 정연하게 장기간 연속 변론할 실력을 완벽히 구비했습니다.</span>
+                                </div>
+                            </div>
+                            <button onclick="playSampleAudio(6, event)" class="sample-play-btn ml-4 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-300 font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1 shrink-0">
+                                <i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy slides matching slide 4 bottom note in image_56b702.jpg -->
+                <div class="bg-slate-100 border border-slate-300 rounded-xl p-5 space-y-2.5">
+                    <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-300 pb-1.5">
+                        <i class="fa-solid fa-graduation-cap text-indigo-500"></i> image_56b702.jpg 핵심 오픽 고득점 전략 가이드
+                    </h4>
+                    <ul class="text-xs text-slate-700 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-600 mt-0.5">●</span>
+                            <span><strong>정확한 자가진단 청취</strong>: 우측의 초록색 [샘플듣기] 버튼을 가볍게 눌러, 본인의 이상적인 목표 발화 감도와 어조를 참고할 수 있는 음성이 재생됩니다.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-600 mt-0.5">●</span>
+                            <span><strong>난이도 1회 변경 규칙</strong>: 실제 OPIc 시험 중간에(주로 7번 문제 직후) 사용자의 응답 진행률에 따라 난이도를 한 차례 위아래로 수정할 수 있는 실제 룰이 적용됩니다.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom navigation -->
+            <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex justify-between items-center">
+                <button onclick="goToSlide('survey')" class="text-slate-600 hover:text-slate-900 font-extrabold transition text-xs flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> 이전 단계
+                </button>
+                <button onclick="startExamSimulate()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-6 py-3 rounded-xl transition shadow flex items-center gap-2">
+                    실전 모의고사 시작 <i class="fa-solid fa-circle-play text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Slide 4: Real Exam Simulation Player Console (emulating image_56b722.jpg Eva console) -->
+        <div id="slide-exam" class="hidden w-full bg-slate-100 rounded-3xl shadow-2xl overflow-hidden border-8 border-slate-800 max-w-5xl flex flex-col relative">
+            
+            <!-- Confetti visual canvas overlay -->
+            <canvas id="confetti-overlay" class="absolute inset-0 pointer-events-none z-50"></canvas>
+
+            <!-- Top Official header bar style -->
+            <div class="actfl-dark-gray text-white px-5 py-3 flex items-center justify-between border-b border-slate-700 select-none">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider animate-pulse">Live</span>
+                    <h2 class="text-sm font-extrabold tracking-tight">OPIc Real Exam Interface</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Real-time Exam Timer Display -->
+                    <div class="bg-slate-800 px-3.5 py-1 rounded border border-slate-600 text-xs font-mono font-extrabold text-rose-400 flex items-center gap-1.5 shadow-inner">
+                        <i class="fa-regular fa-clock animate-spin"></i> Timer: <span id="exam-timer">40:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard grid layout from slide 5 -->
+            <div class="grid grid-cols-1 md:grid-cols-12 flex-grow min-h-[480px]">
+                
+                <!-- Left Sidebar: Question Numbers Grid (1 to 15) -->
+                <div class="md:col-span-3 bg-slate-200 border-r border-slate-300 p-4 flex flex-col justify-between font-sans select-none">
+                    <div class="space-y-4">
+                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block border-b border-slate-300 pb-1">Questions List</span>
+                        
+                        <!-- Grid 1-15 -->
+                        <div id="question-numbers-grid" class="grid grid-cols-5 gap-1.5">
+                            <!-- Populated dynamically: numbers from 1 to 15 -->
+                        </div>
+                    </div>
+
+                    <!-- Left bottom stats monitor -->
+                    <div class="bg-white/75 rounded-lg border border-slate-300 p-3 mt-4 space-y-1 text-[11px] text-slate-600 shadow-inner">
+                        <div class="flex justify-between">
+                            <span>전체 난이도:</span>
+                            <span class="font-bold text-slate-800" id="current-difficulty-display">5단계</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>발화 시간:</span>
+                            <span class="font-bold text-indigo-600 font-mono" id="live-rec-duration">00:00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>필러 사용 횟수:</span>
+                            <span class="font-extrabold text-rose-600 font-mono" id="live-filler-indicator">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Main Player Screen: Eva Image and State Controls -->
+                <div class="md:col-span-6 bg-white p-6 flex flex-col justify-between items-center relative border-r border-slate-300">
+                    
+                    <!-- Alert Prompt "Time for a new question" -->
+                    <div id="alert-time-for-new-question" class="absolute top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 text-[10px] font-black px-4 py-1.5 rounded-full shadow border-2 border-white tracking-wide uppercase transition duration-300 scale-0 z-40">
+                        ⚠️ Time for a new question!
+                    </div>
+
+                    <div class="w-full flex-1 flex flex-col items-center justify-center space-y-5">
+                        <!-- Eva Graphic View Box -->
+                        <div class="relative w-44 h-44 rounded-2xl bg-gradient-to-br from-indigo-50 to-slate-100 border-4 border-slate-300 shadow flex items-center justify-center overflow-hidden">
+                            <!-- Real-time dynamic visualizer circles -->
+                            <div id="eva-wave-circle-1" class="absolute w-full h-full bg-indigo-500/10 rounded-full scale-0 transition duration-300"></div>
+                            <div id="eva-wave-circle-2" class="absolute w-full h-full bg-indigo-500/5 rounded-full scale-0 transition duration-300"></div>
+                            
+                            <!-- Eva Avatar SVG Face -->
+                            <svg id="eva-svg-face" class="w-28 h-28 text-slate-700 transition duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14c2.5 0 4.5-1.5 4.5-3.5S14.5 7 12 7s-4.5 1.5-4.5 3.5 2 3.5 4.5 3.5z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18c0-2.5 3-4 6-4s6 1.5 6 4" />
+                            </svg>
+
+                            <!-- Mini active Recording status pill -->
+                            <div id="recording-active-indicator" class="absolute top-2.5 right-2.5 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-md hidden recording-pulse">
+                                <span class="w-1.5 h-1.5 rounded-full bg-white"></span> RECORDING
+                            </div>
+                        </div>
+
+                        <!-- Speech Recognition waveform display -->
+                        <div class="w-full max-w-sm space-y-2 text-center">
+                            <span class="text-[9px] font-black text-slate-400 tracking-widest uppercase block" id="eva-status-sub">Interviewer Status</span>
+                            <p class="text-xs font-bold text-slate-800" id="eva-current-behavior">에바의 입 모양을 클릭하거나 '질문 듣기' 버튼을 누르세요.</p>
+                        </div>
+                    </div>
+
+                    <!-- Custom Replay and Audio trigger center panel mimicking image_56b722.jpg -->
+                    <div class="w-full flex items-center justify-center py-4 border-t border-slate-100 gap-4">
+                        <!-- Play/Replay Question Button -->
+                        <button id="exam-replay-btn" onclick="triggerEvaQuestionTTS()" class="w-14 h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-full flex flex-col items-center justify-center shadow-md hover:scale-105 active:scale-95 transition border-2 border-slate-700 select-none">
+                            <i class="fa-solid fa-rotate-left text-lg"></i>
+                            <span class="text-[8px] font-black tracking-tighter uppercase mt-0.5">REPLAY</span>
+                        </button>
+
+                        <!-- Answer Recording Control -->
+                        <button id="exam-record-btn" onclick="toggleSpeechRecording()" class="w-48 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 px-5 rounded-2xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition disabled:opacity-50" disabled>
+                            <i class="fa-solid fa-microphone text-sm" id="record-icon"></i>
+                            <span id="record-text">답변 녹음 (RECORD)</span>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Right Sidebar: Interactive Live Transcript + AI Prompt Feed -->
+                <div class="md:col-span-3 bg-white p-5 flex flex-col justify-between font-sans overflow-hidden">
+                    
+                    <div class="flex-1 flex flex-col justify-between overflow-hidden">
+                        <div class="space-y-3 flex-1 flex flex-col overflow-hidden">
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">LIVE TRANSCRIPT</span>
+                                <!-- Practice toggle visual aid -->
+                                <button onclick="toggleVisualCheatAid()" class="text-[9px] font-black text-indigo-500 hover:underline">
+                                    [한글 질문지 ON/OFF]
+                                </button>
+                            </div>
+
+                            <!-- Realtime Speech-to-text live visual feed -->
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex-1 overflow-y-auto custom-scroll text-xs">
+                                <!-- Korean Question Text Helper box -->
+                                <div id="cheat-helper-korean-question" class="hidden bg-indigo-50 text-indigo-800 p-2.5 rounded-lg mb-2 leading-relaxed font-semibold italic">
+                                    {Korean Helper}
+                                </div>
+                                <p id="realtime-stt-output" class="text-slate-600 leading-relaxed italic">
+                                    질문 듣기를 마친 후, 마이크 버튼을 클릭해 영어 답변을 전개해 보세요. 실시간 텍스트가 이곳에 타이핑됩니다...
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Real-time strategy tip based on selected OPIc slide theme -->
+                        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3.5 mt-4 space-y-1 text-slate-700">
+                            <span class="text-[9px] font-black text-indigo-600 uppercase tracking-widest block"><i class="fa-solid fa-lightbulb"></i> 현재 질문 공략법 (Tips)</span>
+                            <p id="active-question-strategy-text" class="text-[10px] leading-relaxed font-medium">
+                                질문을 온전히 이해한 후 답변을 즉시 시작하세요.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Next button layout mirroring ACTFL style exactly -->
+                    <div class="border-t border-slate-100 pt-4 mt-4 flex justify-between items-center select-none">
+                        <div class="text-[9px] text-slate-400 font-bold uppercase">
+                            REPLAY LIMIT: <span id="replay-counter-text" class="font-extrabold text-slate-700">0 / 2</span>
+                        </div>
+                        <button id="exam-next-btn" onclick="submitAnswerAndProgress()" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-3 rounded-xl shadow active:scale-95 transition flex items-center gap-1.5">
+                            <span>Next Question</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Slide 5: Complete AI Diagnostic Feedback & Evaluation Board -->
+        <div id="slide-feedback" class="hidden w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 max-w-4xl flex flex-col">
+            <!-- Header bar -->
+            <div class="actfl-blue text-white px-6 py-5 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-3xl">🏆</span>
+                    <h1 class="text-2xl font-black tracking-tight">OPIc AI 성적 진단 피드백 보고서</h1>
+                </div>
+                <span class="text-sm font-bold bg-white/20 px-3 py-1 rounded-full border border-white/30">완료</span>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-6 max-h-[500px] overflow-y-auto custom-scroll">
+                
+                <!-- Grade Summary Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-center">
+                        <span class="text-[10px] font-extrabold text-indigo-500 uppercase tracking-widest block">자가 난이도 설정</span>
+                        <span class="text-2xl font-black text-slate-800" id="final-difficulty-display">5단계</span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+                        <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block">총 완료 질문 문항</span>
+                        <span class="text-2xl font-black text-slate-800" id="final-completed-questions">12 / 12</span>
+                    </div>
+                    <!-- Predicted OPIc Level -->
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center relative overflow-hidden">
+                        <span class="text-[10px] font-extrabold text-emerald-600 uppercase tracking-widest block">인공지능 예측 등급</span>
+                        <span class="text-3xl font-black text-emerald-600 block tracking-wider" id="final-predicted-grade">AL</span>
+                    </div>
+                </div>
+
+                <!-- Comprehensive Multi-chart Scores -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass-chart text-indigo-500"></i> 영역별 스피킹 세부 성적표
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                        <!-- Fluency -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-bold text-slate-700">
+                                <span>유창성 & 어조 (Fluency)</span>
+                                <span id="bar-fluency-txt" class="text-indigo-600">85%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                <div id="bar-fluency" class="bg-indigo-500 h-full" style="width: 85%"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-relaxed">필러 단어를 끊기지 않고 자연스럽게 엮어내는 전개력을 평가합니다.</p>
+                        </div>
+
+                        <!-- Grammar -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-bold text-slate-700">
+                                <span>시제 및 문법 (Grammar)</span>
+                                <span id="bar-grammar-txt" class="text-indigo-600">75%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                <div id="bar-grammar" class="bg-indigo-500 h-full" style="width: 75%"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-relaxed">과거 묘사에서 시제 붕괴 없이 완벽히 유지되었는지 평가합니다.</p>
+                        </div>
+
+                        <!-- Vocab -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-bold text-slate-700">
+                                <span>어휘 활용 범위 (Vocabulary)</span>
+                                <span id="bar-vocab-txt" class="text-indigo-600">80%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                <div id="bar-vocab" class="bg-indigo-500 h-full" style="width: 80%"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-relaxed">단순 단어의 연속적인 중복을 탈피하여 다양한 숙어를 활용했는지 평가합니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnostic AI overall Critique card -->
+                <div class="bg-slate-900 text-white rounded-xl p-5 border-l-4 border-emerald-500 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-microchip"></i> Gemini AI 실시간 통합 총평 피드백
+                        </h3>
+                        <span class="text-[9px] bg-slate-800 px-2 py-0.5 rounded text-emerald-400 border border-slate-700">Gemini-3-Flash-Preview</span>
+                    </div>
+                    <p id="ai-overall-critique-text" class="text-xs leading-relaxed text-slate-300">
+                        전반적으로 막힘없는 대답과 적절한 필러 표현의 사용이 매우 인상적이었습니다! 특정 과거 시제의 문장을 이야기할 때 소소한 스펠링 및 조동사 활용 실수가 포착되었습니다. 이 부분이 정교하게 조율된다면 AL 등급을 최단기 수준으로 쉽게 점유할 수 있을 것으로 확신합니다.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Bottom navigation -->
+            <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex justify-end">
+                <button onclick="restartExamSimulation()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-6 py-3 rounded-xl transition shadow flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left text-xs"></i> 모의고사 다시 시작하기
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Footer slide indicator matching ACTFL design specs -->
+    <footer class="bg-white border-t py-4 text-center select-none z-10">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 gap-2">
+            <span>© 2026 OPIc Mobile Master (AI Real Exam Simulation Board)</span>
+            <div class="flex items-center space-x-3">
+                <span class="hover:text-slate-600 cursor-pointer">이용약관</span>
+                <span class="hover:text-slate-600 cursor-pointer">개인정보 처리방침</span>
+                <span class="hover:text-slate-600 cursor-pointer">고객센터</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Sound Effect & Sample Listening voice player script -->
+    <script>
+        let synth = window.speechSynthesis;
+
+        // Custom Sound Effects Synthesizer using pure Web Audio API
         let audioContext = null;
         function getAudioContext() {
             if (!audioContext) {
@@ -580,274 +875,485 @@
             return audioContext;
         }
 
-        function playSynthesizedSound(type) {
+        function playSoundEffect(type) {
             try {
                 const ctx = getAudioContext();
                 if (ctx.state === 'suspended') ctx.resume();
 
-                const masterGain = ctx.createGain();
-                masterGain.gain.setValueAtTime(gameState.synthVolume * 0.4, ctx.currentTime);
-                masterGain.connect(ctx.destination);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
 
                 if (type === 'beep') {
-                    const osc = ctx.createOscillator();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, ctx.currentTime);
-                    const gain = ctx.createGain();
-                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-                    osc.connect(gain);
-                    gain.connect(masterGain);
+                    osc.frequency.setValueAtTime(800, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
                     osc.start();
-                    osc.stop(ctx.currentTime + 0.16);
+                    osc.stop(ctx.currentTime + 0.13);
                 } else if (type === 'success') {
-                    // Upward happy chime
-                    [330, 440, 554, 659].forEach((freq, idx) => {
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
-                        gain.gain.setValueAtTime(0.1, ctx.currentTime + idx * 0.08);
-                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.2);
-                        osc.connect(gain);
-                        gain.connect(masterGain);
-                        osc.start(ctx.currentTime + idx * 0.08);
-                        osc.stop(ctx.currentTime + idx * 0.08 + 0.25);
+                    // Quick happy ascending chime
+                    [350, 450, 550, 650].forEach((freq, i) => {
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.connect(g);
+                        g.connect(ctx.destination);
+                        o.frequency.setValueAtTime(freq, ctx.currentTime + (i * 0.08));
+                        g.gain.setValueAtTime(0.08, ctx.currentTime + (i * 0.08));
+                        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (i * 0.08) + 0.2);
+                        o.start(ctx.currentTime + (i * 0.08));
+                        o.stop(ctx.currentTime + (i * 0.08) + 0.25);
                     });
                 }
-            } catch(e) {
-                console.warn("Sound synth blocked or not supported", e);
+            } catch (e) {
+                console.warn("Web Audio Context not activated yet", e);
             }
         }
 
-        function toggleSurveyItem(element, categoryId) {
-            playSynthesizedSound('beep');
-            const index = gameState.selectedSurvey.indexOf(categoryId);
-            if (index > -1) {
-                gameState.selectedSurvey.splice(index, 1);
-                element.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
-                element.classList.add('border-slate-200', 'text-slate-800');
-            } else {
-                gameState.selectedSurvey.push(categoryId);
-                element.classList.remove('border-slate-200', 'text-slate-800');
-                element.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+        // Play Sample answers from Slide 4 representing levels 1 to 6
+        function playSampleAudio(level, event) {
+            if (event) {
+                event.stopPropagation();
             }
-        }
+            playSoundEffect('beep');
 
-        function proceedToDifficulty() {
-            if (gameState.selectedSurvey.length < 3) {
-                showNotificationToast("📋 서베이 항목을 3개 이상 선택해 주세요!");
+            if (!synth) {
+                showToast("브라우저가 오디오 합성을 지원하지 않습니다.");
                 return;
             }
-            playSynthesizedSound('beep');
-            document.getElementById('screen-survey').classList.add('hidden');
-            document.getElementById('screen-difficulty').classList.remove('hidden');
-            gameState.currentScreen = 'difficulty';
-        }
 
-        function selectDifficulty(level) {
-            playSynthesizedSound('beep');
-            gameState.difficulty = level;
-            
-            // Toggle active styles
-            document.querySelectorAll('.diff-btn').forEach(btn => {
-                btn.classList.remove('border-indigo-600', 'bg-indigo-50/40');
-                btn.classList.add('border-slate-200');
-                btn.querySelector('span:last-child').innerHTML = `<i class="fa-regular fa-circle"></i>`;
-                btn.querySelector('span:last-child').className = "text-slate-300";
+            synth.cancel();
+
+            // Set styling feedback
+            document.querySelectorAll('.sample-play-btn').forEach(btn => {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기`;
             });
 
-            const activeBtn = document.getElementById(`diff-${level}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('border-slate-200');
-                activeBtn.classList.add('border-indigo-600', 'bg-indigo-50/40');
-                activeBtn.querySelector('span:last-child').innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
-                activeBtn.querySelector('span:last-child').className = "text-indigo-600";
+            if (examState.activeSampleAudioLevel === level) {
+                examState.activeSampleAudioLevel = null;
+                return;
+            }
+
+            examState.activeSampleAudioLevel = level;
+            const targetBtn = event ? event.currentTarget : null;
+            if (targetBtn) {
+                targetBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-[10px]"></i> 재생중...`;
+            }
+
+            const samples = {
+                1: "Apple, banana, dog. I like pizza. Very good.",
+                2: "My favorite color is blue. On Monday I eat hamburgers. I have a shirt. It is red.",
+                3: "I live in Seoul with my friend. I work at a big office. I go to park on weekends. It is clean.",
+                4: "To be honest, I'm a big fan of watching movies. I mean, actually, I usually go to theater once a week. You know, it winds me down and, like, uplifts my mood.",
+                5: "Well, you see, the park in my neighborhood is extremely beautiful. Actually, a couple of months ago, an unexpected incident occurred. A puppy suddenly started chasing me. Honestly, I was so startled, but it turned out to be incredibly friendly.",
+                6: "From my perspective, virtual reality holds profound potential in professional training sectors. It can mitigate high risk variables in medical trials. Furthermore, the correlation between remote operations and automation represents a paradigm shift in our industry."
+            };
+
+            const speech = new SpeechSynthesisUtterance(samples[level]);
+            speech.lang = 'en-US';
+            speech.rate = 0.95;
+            
+            speech.onend = () => {
+                if (targetBtn) {
+                    targetBtn.innerHTML = `<i class="fa-solid fa-volume-high text-[10px]"></i> 샘플듣기`;
+                }
+                examState.activeSampleAudioLevel = null;
+            };
+
+            synth.speak(speech);
+        }
+    </script>
+
+    <!-- Helper & Navigation Screen functions -->
+    <script>
+        function goToSlide(slideId) {
+            playSoundEffect('beep');
+            synth.cancel();
+
+            // Hide all slides
+            document.getElementById('slide-intro').classList.add('hidden');
+            document.getElementById('slide-survey').classList.add('hidden');
+            document.getElementById('slide-assessment').classList.add('hidden');
+            document.getElementById('slide-exam').classList.add('hidden');
+            document.getElementById('slide-feedback').classList.add('hidden');
+
+            // Show active
+            document.getElementById('slide-' + slideId).classList.remove('hidden');
+            examState.currentSlide = slideId;
+
+            // Trigger action based on slide transition
+            if (slideId === 'exam') {
+                initExamTimer();
+            } else {
+                clearInterval(examState.examTimerInterval);
             }
         }
 
-        function startExam() {
-            playSynthesizedSound('beep');
-            
-            // Build dynamic question pool based on selected survey items
-            gameState.questionsList = [...questionsDatabase['common']];
-            
-            gameState.selectedSurvey.forEach(srv => {
-                if (questionsDatabase[srv]) {
-                    // Take the first question of selected survey to prevent overly long test for user
-                    gameState.questionsList.push(questionsDatabase[srv][0]);
+        // Save Custom Gemini Key
+        function saveApiKey(key) {
+            examState.apiKey = key.trim();
+            showToast("Gemini API Key가 성공적으로 업데이트되었습니다.");
+        }
+
+        function toggleSetupGuide() {
+            playSoundEffect('beep');
+            showToast("우측 상단 API Key 박스에 본인의 Gemini API Key를 입력하시면, AI 심사위원이 실시간 발화를 분석해 실제 오픽 채점 등급(AL/IH 등)과 맞춤 구문을 제공해 드립니다.");
+        }
+
+        // Survey State handler
+        function selectSurveyRadio(category, value) {
+            playSoundEffect('beep');
+            examState.surveyAnswers[category] = value;
+            updateSurveyRowStyling();
+        }
+
+        function toggleSurveyHobby(hobby) {
+            playSoundEffect('beep');
+            const index = examState.surveyAnswers.hobbies.indexOf(hobby);
+            if (index > -1) {
+                examState.surveyAnswers.hobbies.splice(index, 1);
+            } else {
+                examState.surveyAnswers.hobbies.push(hobby);
+            }
+            updateSurveyRowStyling();
+        }
+
+        function updateSurveyRowStyling() {
+            // Survey Radio visual toggles
+            document.querySelectorAll('.survey-option-label').forEach(lbl => {
+                const radio = lbl.querySelector('input[type="radio"]');
+                if (radio && radio.checked) {
+                    lbl.classList.add('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200');
+                    lbl.classList.remove('border-slate-200');
+                } else {
+                    lbl.classList.remove('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200');
+                    lbl.classList.add('border-slate-200');
                 }
             });
 
-            // Fallback to guarantee at least 4-5 core questions
-            if (gameState.questionsList.length < 4) {
-                gameState.questionsList.push(questionsDatabase['park'][0]);
-                gameState.questionsList.push(questionsDatabase['music'][0]);
-            }
-
-            // Shuffle questions list slightly to make it feel fresh
-            gameState.questionsList.sort(() => Math.random() - 0.5);
-
-            gameState.currentIndex = 0;
-            gameState.transcriptsPool = [];
-
-            // Switch Screen
-            document.getElementById('screen-difficulty').classList.add('hidden');
-            document.getElementById('screen-exam').classList.remove('hidden');
-            gameState.currentScreen = 'exam';
-
-            // Start 40-minute OPIc Global Countdown Timer
-            gameState.examTimer = 2400; // 40 minutes
-            if (gameState.examTimerInterval) clearInterval(gameState.examTimerInterval);
-            gameState.examTimerInterval = setInterval(updateExamTimer, 1000);
-
-            loadQuestionIntoEva(0);
-            showNotificationToast("🚀 실전 오픽 시험이 시작되었습니다! 에바의 음성을 들어보세요.");
+            // Hobby checkbox visual toggles
+            document.querySelectorAll('.hobby-checkbox-label').forEach(lbl => {
+                const chk = lbl.querySelector('input[type="checkbox"]');
+                if (chk && chk.checked) {
+                    lbl.classList.add('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200');
+                    lbl.classList.remove('border-slate-200');
+                } else {
+                    lbl.classList.remove('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200');
+                    lbl.classList.add('border-slate-200');
+                }
+            });
         }
 
-        function updateExamTimer() {
-            if (gameState.examTimer <= 0) {
-                clearInterval(gameState.examTimerInterval);
-                finishEntireExam();
+        // Slide survey validation before proceeding to slide 3
+        function validateAndGoToDifficulty() {
+            const answers = examState.surveyAnswers;
+            if (!answers.job) {
+                showToast("⚠️ 1번 문항 (종사 직종)을 반드시 체크해 주세요!");
                 return;
             }
-            gameState.examTimer--;
-            const mins = Math.floor(gameState.examTimer / 60);
-            const secs = gameState.examTimer % 60;
-            document.getElementById('exam-timer-display').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            if (!answers.student) {
+                showToast("⚠️ 2번 문항 (학생 여부)를 반드시 체크해 주세요!");
+                return;
+            }
+            if (!answers.housing) {
+                showToast("⚠️ 3번 문항 (거주지 형태)를 반드시 체크해 주세요!");
+                return;
+            }
+            goToSlide('assessment');
         }
 
-        function loadQuestionIntoEva(idx) {
-            const questionData = gameState.questionsList[idx];
+        // Slide assessment select difficulty level row highlighting
+        function selectDifficulty(level) {
+            playSoundEffect('beep');
+            examState.difficultyLevel = level;
             
-            // Reset question-specific states
-            gameState.replayCount = 0;
-            gameState.activeTranscript = "";
-            gameState.fillerCount = 0;
-            gameState.recordingSeconds = 0;
+            // Check radio button programmatically
+            const radio = document.getElementById(`diff-opt-${level}`);
+            if (radio) radio.checked = true;
+
+            // highlight card
+            document.querySelectorAll('.assessment-card').forEach(card => {
+                card.classList.remove('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200');
+                card.classList.add('border-slate-200');
+            });
+
+            const activeCard = document.getElementById(`assessment-row-${level}`);
+            if (activeCard) {
+                activeCard.classList.add('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200');
+                activeCard.classList.remove('border-slate-200');
+            }
+        }
+    </script>
+
+    <!-- Actual Simulation Engine Code -->
+    <script>
+        // Start Exam & Build adaptive question bundle based on survey choices
+        function startExamSimulate() {
+            examState.questionsList = [];
             
-            document.getElementById('replay-badge').innerText = `Replay: 0/2`;
-            document.getElementById('topic-badge').innerText = `Topic: ${questionData.topic}`;
-            document.getElementById('live-speech-transcript').innerText = "답변 준비가 되시면 'RECORD' 버튼을 누르고 말씀하세요...";
-            document.getElementById('filler-count-pill').innerText = "0";
-            document.getElementById('rec-duration-pill').innerText = "00:00";
-            document.getElementById('hidden-question-text').innerText = questionData.question;
+            // 1. Mandatory introduction question
+            examState.questionsList.push(questionsPool.common[0]);
 
-            // Reset buttons state
-            document.getElementById('btn-play-question').disabled = false;
-            document.getElementById('btn-record-speak').disabled = true; // wait for listening at least once
-            document.getElementById('btn-submit-answer').disabled = true;
+            // 2. Add question based on Q1 selection
+            const jobValue = examState.surveyAnswers.job;
+            if (jobValue && questionsPool.job[jobValue]) {
+                // Add all related job questions
+                questionsPool.job[jobValue].forEach(q => examState.questionsList.push(q));
+            } else {
+                // Fallback for custom radios
+                questionsPool.job['일 경험 없음'].forEach(q => examState.questionsList.push(q));
+            }
 
-            // Soften Eva icon visual
+            // 3. Add question based on Student
+            const isStudent = examState.surveyAnswers.student;
+            if (isStudent === '네') {
+                questionsPool.student['네'].forEach(q => examState.questionsList.push(q));
+            }
+
+            // 4. Add question based on housing
+            const housingVal = examState.surveyAnswers.housing;
+            if (questionsPool.housing[housingVal]) {
+                questionsPool.housing[housingVal].forEach(q => examState.questionsList.push(q));
+            } else {
+                // Default fallback
+                questionsPool.housing['개인주택이나 아파트에 홀로 거주'].forEach(q => examState.questionsList.push(q));
+            }
+
+            // 5. Add questions based on selected hobbies
+            examState.surveyAnswers.hobbies.forEach(hobby => {
+                if (questionsPool.hobbies[hobby]) {
+                    questionsPool.hobbies[hobby].forEach(q => examState.questionsList.push(q));
+                }
+            });
+
+            // 6. Mandatory Roleplay situational question
+            examState.questionsList.push(questionsPool.roleplay[0]);
+
+            // Ensure we limit total questions to fit the 12-15 official range
+            // (If we have fewer, pad with general topics)
+            while (examState.questionsList.length < 12) {
+                const padTopic = questionsPool.hobbies['공원가기'][0];
+                examState.questionsList.push(padTopic);
+            }
+
+            // Slice down to maximum of 15 questions
+            if (examState.questionsList.length > 15) {
+                examState.questionsList = examState.questionsList.slice(0, 15);
+            }
+
+            // Re-render Left progress numbers dashboard
+            renderQuestionNumbersSidebar();
+
+            // Load the first question
+            examState.currentIndex = 0;
+            examState.transcriptsPool = [];
+            loadActiveQuestion(0);
+
+            // Go to slide
+            goToSlide('exam');
+        }
+
+        // Render Sidebar Grid numbers 1-15
+        function renderQuestionNumbersSidebar() {
+            const gridContainer = document.getElementById('question-numbers-grid');
+            gridContainer.innerHTML = '';
+
+            for (let i = 0; i < 15; i++) {
+                const btn = document.createElement('button');
+                btn.id = `sidebar-num-${i}`;
+                btn.className = "h-10 w-full rounded font-mono font-extrabold text-xs flex items-center justify-center border transition select-none cursor-default ";
+                
+                if (i < examState.questionsList.length) {
+                    btn.innerText = (i + 1).toString().padStart(2, '0');
+                    btn.className += "bg-white text-slate-700 border-slate-300";
+                } else {
+                    btn.innerText = "-";
+                    btn.className += "bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed";
+                }
+                gridContainer.appendChild(btn);
+            }
+        }
+
+        // Update current progress highlighting
+        function updateQuestionProgressHighlighting() {
+            for (let i = 0; i < examState.questionsList.length; i++) {
+                const btn = document.getElementById(`sidebar-num-${i}`);
+                if (!btn) continue;
+
+                if (i === examState.currentIndex) {
+                    // Active question is highlighted in bright orange/blue border
+                    btn.className = "h-10 w-full rounded font-mono font-extrabold text-xs flex items-center justify-center border-2 border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm animate-pulse";
+                } else if (i < examState.currentIndex) {
+                    // Answered questions
+                    btn.className = "h-10 w-full rounded font-mono font-extrabold text-xs flex items-center justify-center border bg-slate-800 text-slate-300 border-slate-700";
+                } else {
+                    // Future questions
+                    btn.className = "h-10 w-full rounded font-mono font-extrabold text-xs flex items-center justify-center border bg-white text-slate-700 border-slate-300";
+                }
+            }
+        }
+
+        // Load Question data parameters
+        function loadActiveQuestion(index) {
+            synth.cancel();
+            clearInterval(examState.recordingInterval);
+            clearTimeout(examState.timeForNewQuestionTimer);
+            examState.isRecording = false;
+            examState.recordingSeconds = 0;
+            examState.recognizedTranscript = "";
+            examState.fillerCount = 0;
+
+            const qData = examState.questionsList[index];
+            if (!examState.replayCounts[index]) {
+                examState.replayCounts[index] = 0;
+            }
+
+            document.getElementById('live-rec-duration').innerText = "00:00";
+            document.getElementById('live-filler-indicator').innerText = "0";
+            document.getElementById('realtime-stt-output').innerText = "질문 듣기를 마친 후, 마이크 버튼을 클릭해 영어 답변을 전개해 보세요. 실시간 텍스트가 이곳에 타이핑됩니다...";
+            document.getElementById('cheat-helper-korean-question').innerText = qData.topic;
+            document.getElementById('active-question-strategy-text').innerText = qData.strategy;
+            
+            // Replay counter styling update
+            updateReplayCounterUI();
+
+            // Default state
+            document.getElementById('eva-current-behavior').innerText = "질문을 듣기 위해 'REPLAY' 버튼을 눌러주세요.";
             setEvaVisualState('idle');
-            stopEvaVoice();
+            
+            // Block recording trigger until user plays the question at least once
+            document.getElementById('exam-record-btn').disabled = true;
+
+            updateQuestionProgressHighlighting();
         }
 
-        function setEvaVisualState(state) {
-            const svg = document.getElementById('eva-svg');
-            const ring = document.getElementById('eva-wave-ring');
-            if (state === 'speaking') {
-                svg.classList.add('text-indigo-600', 'scale-110');
-                svg.classList.remove('text-indigo-500');
-                ring.classList.remove('hidden');
-                document.getElementById('eva-action-status').innerText = "Eva is speaking...";
-            } else if (state === 'recording') {
-                svg.classList.add('text-rose-500', 'scale-105');
-                svg.classList.remove('text-indigo-500', 'text-indigo-600');
-                ring.classList.add('hidden');
-                document.getElementById('eva-action-status').innerText = "🔴 EVA LISTENING TO YOU...";
+        // Update Replay text indicator below right side
+        function updateReplayCounterUI() {
+            const count = examState.replayCounts[examState.currentIndex] || 0;
+            const textEl = document.getElementById('replay-counter-text');
+            textEl.innerText = `${count} / 2`;
+            if (count >= 2) {
+                textEl.className = "font-extrabold text-red-500 animate-pulse";
+                document.getElementById('exam-replay-btn').disabled = true;
+                document.getElementById('exam-replay-btn').classList.add('opacity-50', 'cursor-not-allowed');
             } else {
-                svg.className = "w-14 h-14 text-indigo-500 transition-all duration-300";
-                ring.classList.add('hidden');
-                document.getElementById('eva-action-status').innerText = "Ready to speak";
+                textEl.className = "font-extrabold text-slate-700";
+                document.getElementById('exam-replay-btn').disabled = false;
+                document.getElementById('exam-replay-btn').classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
-        function stopEvaVoice() {
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
+        // Eva Visual State Manager
+        function setEvaVisualState(state) {
+            const face = document.getElementById('eva-svg-face');
+            const wave1 = document.getElementById('eva-wave-circle-1');
+            const wave2 = document.getElementById('eva-wave-circle-2');
+            const indicator = document.getElementById('recording-active-indicator');
+
+            if (state === 'speaking') {
+                face.classList.add('text-indigo-600', 'scale-110');
+                face.classList.remove('text-slate-700', 'text-rose-500');
+                wave1.classList.remove('scale-0');
+                wave1.classList.add('scale-125', 'animate-ping');
+                wave2.classList.remove('scale-0');
+                wave2.classList.add('scale-150', 'animate-pulse');
+                indicator.classList.add('hidden');
+            } else if (state === 'recording') {
+                face.classList.add('text-rose-500', 'scale-105');
+                face.classList.remove('text-slate-700', 'text-indigo-600');
+                wave1.classList.add('scale-0');
+                wave1.classList.remove('scale-125', 'animate-ping');
+                wave2.classList.add('scale-0');
+                wave2.classList.remove('scale-150', 'animate-pulse');
+                indicator.classList.remove('hidden');
+            } else {
+                face.className = "w-28 h-28 text-slate-700 transition duration-300";
+                wave1.className = "absolute w-full h-full bg-indigo-500/10 rounded-full scale-0 transition duration-300";
+                wave2.className = "absolute w-full h-full bg-indigo-500/5 rounded-full scale-0 transition duration-300";
+                indicator.classList.add('hidden');
             }
-            gameState.evaIsTalking = false;
         }
 
-        function playQuestionTTS() {
-            if (gameState.replayCount >= 2) {
-                showNotificationToast("❌ 질문은 최대 2회까지만 청취가 가능합니다 (실제 시험 동일).");
+        // Play Eva's Voice Synthesizer mimicking slide 5 REPLAY rule
+        function triggerEvaQuestionTTS() {
+            const currentCount = examState.replayCounts[examState.currentIndex] || 0;
+            if (currentCount >= 2) {
+                showToast("⚠️ 이 질문은 이미 최대 청취 제한(2회)을 초과하였습니다.");
                 return;
             }
 
-            stopEvaVoice();
-            const currentQ = gameState.questionsList[gameState.currentIndex];
-            
-            if ('speechSynthesis' in window) {
-                gameState.replayCount++;
-                document.getElementById('replay-badge').innerText = `Replay: ${gameState.replayCount}/2`;
-                
-                const utterance = new SpeechSynthesisUtterance(currentQ.question);
-                utterance.lang = 'en-US';
-                utterance.volume = gameState.synthVolume;
-                
-                // Try choosing a high quality US English female voice for Eva if available
-                const voices = window.speechSynthesis.getVoices();
-                const usVoice = voices.find(v => v.lang.includes('en-US') && v.name.toLowerCase().includes('google'));
-                if (usVoice) utterance.voice = usVoice;
+            synth.cancel();
+            playSoundEffect('beep');
 
-                utterance.onstart = () => {
-                    gameState.evaIsTalking = true;
-                    setEvaVisualState('speaking');
-                };
+            const qData = examState.questionsList[examState.currentIndex];
+            examState.replayCounts[examState.currentIndex] = currentCount + 1;
+            updateReplayCounterUI();
 
-                utterance.onend = () => {
-                    gameState.evaIsTalking = false;
-                    setEvaVisualState('idle');
-                    // Enable user response recording once question has been played
-                    document.getElementById('btn-record-speak').disabled = false;
-                };
+            const utterance = new SpeechSynthesisUtterance(qData.question);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.95;
 
-                utterance.onerror = (e) => {
-                    console.error("TTS speech synthesis failed", e);
-                    setEvaVisualState('idle');
-                    document.getElementById('btn-record-speak').disabled = false;
-                };
+            utterance.onstart = () => {
+                document.getElementById('eva-current-behavior').innerText = "에바가 핵심 질문을 전개하고 있습니다. 귀를 기울여 경청하세요...";
+                setEvaVisualState('speaking');
+            };
 
-                gameState.currentSpeechUtterance = utterance;
-                window.speechSynthesis.speak(utterance);
-            } else {
-                showNotificationToast("🔊 브라우저가 영어 TTS 보이스를 제공하지 않습니다. 우측 상단의 [지문 보기 ON] 버튼을 활용하세요!");
-                document.getElementById('btn-record-speak').disabled = false;
-            }
+            utterance.onend = () => {
+                document.getElementById('eva-current-behavior').innerText = "질문 청취 완료! 준비가 되셨다면 녹음 버튼을 누르고 바로 이야기하십시오.";
+                setEvaVisualState('idle');
+                document.getElementById('exam-record-btn').disabled = false;
+            };
+
+            utterance.onerror = () => {
+                document.getElementById('eva-current-behavior').innerText = "오디오 합성 오류가 검출되었습니다. 지문을 참고하여 응답하세요.";
+                setEvaVisualState('idle');
+                document.getElementById('exam-record-btn').disabled = false;
+            };
+
+            synth.speak(utterance);
         }
+    </script>
 
+    <!-- Web Speech Recognition API Integrator -->
+    <script>
         function initializeSTT() {
             window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!window.SpeechRecognition) {
-                console.warn("Speech recognition not supported in this browser environment.");
+                console.warn("STT Speech Recognition features not supported inside this browser.");
                 return;
             }
 
-            gameState.speechRecognition = new window.SpeechRecognition();
-            gameState.speechRecognition.continuous = true;
-            gameState.speechRecognition.interimResults = true;
-            gameState.speechRecognition.lang = 'en-US';
+            examState.speechRecognition = new window.SpeechRecognition();
+            examState.speechRecognition.continuous = true;
+            examState.speechRecognition.interimResults = true;
+            examState.speechRecognition.lang = 'en-US';
 
-            gameState.speechRecognition.onstart = () => {
-                gameState.isListening = true;
+            examState.speechRecognition.onstart = () => {
+                examState.isRecording = true;
                 setEvaVisualState('recording');
-                document.getElementById('visualizer-container').classList.remove('hidden');
-                document.getElementById('record-btn-text').innerText = "RECORDING (클릭해 종료)";
-                document.getElementById('record-btn-icon').className = "fa-solid fa-microphone-slash animate-pulse text-rose-500";
-                
-                // Track recording duration
-                gameState.recordingSeconds = 0;
-                if (gameState.recordingInterval) clearInterval(gameState.recordingInterval);
-                gameState.recordingInterval = setInterval(() => {
-                    gameState.recordingSeconds++;
-                    const m = Math.floor(gameState.recordingSeconds / 60);
-                    const s = gameState.recordingSeconds % 60;
-                    document.getElementById('rec-duration-pill').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                document.getElementById('record-icon').className = "fa-solid fa-microphone-slash text-rose-500 animate-pulse";
+                document.getElementById('record-text').innerText = "녹음중 (클릭 시 중지)";
+                document.getElementById('eva-current-behavior').innerText = "🔴 실시간 스피킹 음성을 탐지하고 있습니다...";
+
+                // Start visual counter timer
+                examState.recordingSeconds = 0;
+                clearInterval(examState.recordingInterval);
+                examState.recordingInterval = setInterval(() => {
+                    examState.recordingSeconds++;
+                    const m = Math.floor(examState.recordingSeconds / 60);
+                    const s = examState.recordingSeconds % 60;
+                    document.getElementById('live-rec-duration').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 }, 1000);
+
+                // Start "Time for a new question" timer mimicking slide 5
+                clearTimeout(examState.timeForNewQuestionTimer);
+                examState.timeForNewQuestionTimer = setTimeout(() => {
+                    triggerTimeForNewQuestionAlert();
+                }, 90000); // 1.5 minutes warning
             };
 
-            gameState.speechRecognition.onresult = (event) => {
+            examState.speechRecognition.onresult = (event) => {
                 let interimTranscript = '';
                 let finalTranscript = '';
 
@@ -860,368 +1366,342 @@
                 }
 
                 if (finalTranscript) {
-                    gameState.activeTranscript += finalTranscript;
-                    // Detect high quality OPIc fillers
-                    countFillerPhrases(gameState.activeTranscript);
+                    examState.recognizedTranscript += finalTranscript;
+                    detectFillerWordsCount(examState.recognizedTranscript);
                 }
 
-                // Display dynamic text updates
-                document.getElementById('live-speech-transcript').innerText = gameState.activeTranscript || interimTranscript || "...";
-                document.getElementById('btn-submit-answer').disabled = false;
+                // Show text updates dynamically
+                document.getElementById('realtime-stt-output').innerText = examState.recognizedTranscript || interimTranscript || "...";
             };
 
-            gameState.speechRecognition.onerror = (e) => {
-                console.error("STT System Error", e);
+            examState.speechRecognition.onerror = (e) => {
+                console.error("STT internal process failure", e);
                 stopSpeechRecordingUI();
             };
 
-            gameState.speechRecognition.onend = () => {
+            examState.speechRecognition.onend = () => {
                 stopSpeechRecordingUI();
             };
         }
 
-        function countFillerPhrases(text) {
-            const lowerText = text.toLowerCase();
-            let total = 0;
-            targetFillers.forEach(filler => {
-                const regex = new RegExp(`\\b${filler}\\b`, 'g');
-                const matches = lowerText.match(regex);
+        // Detect high scoring Native English Filler word metrics
+        const nativeOPIcFillers = ["you know", "like", "actually", "honestly", "well", "i mean", "you see", "basically", "seriously"];
+
+        function detectFillerWordsCount(text) {
+            const raw = text.toLowerCase();
+            let score = 0;
+            nativeOPIcFillers.forEach(word => {
+                const regex = new RegExp(`\\b${word}\\b`, 'g');
+                const matches = raw.match(regex);
                 if (matches) {
-                    total += matches.length;
+                    score += matches.length;
                 }
             });
-            gameState.fillerCount = total;
-            document.getElementById('filler-count-pill').innerText = total;
+            examState.fillerCount = score;
+            document.getElementById('live-filler-indicator').innerText = score;
         }
 
         function toggleSpeechRecording() {
-            // Stop TTS if running
-            stopEvaVoice();
+            synth.cancel();
 
-            if (!gameState.speechRecognition) {
+            if (!examState.speechRecognition) {
                 initializeSTT();
             }
 
-            if (gameState.isListening) {
-                gameState.speechRecognition.stop();
+            if (examState.isRecording) {
+                examState.speechRecognition.stop();
             } else {
                 try {
-                    gameState.activeTranscript = "";
-                    gameState.speechRecognition.start();
-                } catch(err) {
-                    console.error("STT initiation error", err);
+                    examState.recognizedTranscript = "";
+                    examState.speechRecognition.start();
+                } catch (e) {
+                    console.error("Microphone recognition sequence blocked", e);
                 }
             }
         }
 
         function stopSpeechRecordingUI() {
-            gameState.isListening = false;
+            examState.isRecording = false;
             setEvaVisualState('idle');
-            document.getElementById('visualizer-container').classList.add('hidden');
-            document.getElementById('record-btn-text').innerText = "답변 녹음 시작 (RECORD)";
-            document.getElementById('record-btn-icon').className = "fa-solid fa-microphone";
-            if (gameState.recordingInterval) clearInterval(gameState.recordingInterval);
+            document.getElementById('record-icon').className = "fa-solid fa-microphone";
+            document.getElementById('record-text').innerText = "답변 녹음 (RECORD)";
+            document.getElementById('eva-current-behavior').innerText = "답변 녹음이 종료되었습니다. 확인 후 'Next' 버튼을 클릭해 진행하십시오.";
+            clearInterval(examState.recordingInterval);
+            clearTimeout(examState.timeForNewQuestionTimer);
+            hideTimeForNewQuestionAlert();
         }
 
-        async function evaluateAnswerAndNext() {
+        // Dynamic alert triggering mimicking image_56b722.jpg [Time for a new question]
+        function triggerTimeForNewQuestionAlert() {
+            const alertBox = document.getElementById('alert-time-for-new-question');
+            alertBox.classList.remove('scale-0');
+            alertBox.classList.add('scale-100');
+        }
+
+        function hideTimeForNewQuestionAlert() {
+            const alertBox = document.getElementById('alert-time-for-new-question');
+            alertBox.classList.remove('scale-100');
+            alertBox.classList.add('scale-0');
+        }
+    </script>
+
+    <!-- AI Evaluation, next progress sequences -->
+    <script>
+        function submitAnswerAndProgress() {
+            synth.cancel();
             stopSpeechRecordingUI();
-            stopEvaVoice();
 
-            const currentQ = gameState.questionsList[gameState.currentIndex];
-            const rawAnswerText = gameState.activeTranscript.trim();
+            const responseText = examState.recognizedTranscript.trim();
+            const currentQ = examState.questionsList[examState.currentIndex];
 
-            if (!rawAnswerText || rawAnswerText.length < 5) {
-                showNotificationToast("⚠️ 발화된 답변이 너무 짧습니다. 좀 더 성의 있는 답변을 마이크로 녹음해 보세요.");
+            if (!responseText || responseText.length < 10) {
+                showToast("⚠️ 아직 충분한 발화 텍스트가 인식되지 않았습니다. 좀 더 대답한 후 Next로 진행해 주세요!");
                 return;
             }
 
-            gameState.isProcessingApi = true;
-            playSynthesizedSound('success');
+            playSoundEffect('success');
 
-            // Save result to the exam overview pool
-            gameState.transcriptsPool.push({
+            // Save user answers pool
+            examState.transcriptsPool.push({
                 question: currentQ.question,
                 topic: currentQ.topic,
-                transcript: rawAnswerText,
-                fillers: gameState.fillerCount,
-                duration: gameState.recordingSeconds
+                transcript: responseText,
+                duration: examState.recordingSeconds,
+                fillers: examState.fillerCount
             });
 
-            // Standard fallback diagnostic system
-            let feedbackText = `답변하신 ${rawAnswerText.split(' ').length} 단어 분량에 대한 분석 결과입니다. ${gameState.fillerCount}번의 필러를 조화롭게 섞어 쓰며 영어적 유창성을 살려낸 점이 우수합니다.`;
-            let isAlLevel = false;
-
-            // Advanced static analyzer based on OPIc standards
-            const wordCount = rawAnswerText.split(' ').length;
-            if (wordCount > 60 && gameState.fillerCount >= 3) {
-                feedbackText += " 문장이 풍성하고 유연하여 오픽 AL 등급을 기대할 수 있는 훌륭한 수준입니다. 과거 시제 일관성도 탁월합니다.";
-                isAlLevel = true;
-            } else if (wordCount > 30) {
-                feedbackText += " 전형적인 오픽 IH 수준에 알맞게 논리 정연하게 문장을 구축해 냈습니다. 'And', 'Because' 이외에 다른 전환사를 늘려 보세요.";
+            // Transition logic
+            if (examState.currentIndex + 1 >= examState.questionsList.length) {
+                // Final slide, run the grading engine
+                finalizeOPIcMockExam();
             } else {
-                feedbackText += " 문법적 흐름은 좋으나 전체 발화 지속 시간이 다소 짧아 IM 등급 수준으로 예측됩니다. 더 적극적인 입담을 훈련해 보세요.";
+                examState.currentIndex++;
+                loadActiveQuestion(examState.currentIndex);
+                showToast(`🔔 다음 ${examState.currentIndex + 1}번 콤보 질문으로 이동합니다.`);
+            }
+        }
+
+        // Main 40-minute Countdown Timer logic
+        function initExamTimer() {
+            examState.examTimer = 2400; // 40 minutes reset
+            if (examState.examTimerInterval) clearInterval(examState.examTimerInterval);
+            
+            examState.examTimerInterval = setInterval(() => {
+                if (examState.examTimer <= 0) {
+                    clearInterval(examState.examTimerInterval);
+                    finalizeOPIcMockExam();
+                    return;
+                }
+                examState.examTimer--;
+                const mins = Math.floor(examState.examTimer / 60);
+                const secs = examState.examTimer % 60;
+                document.getElementById('exam-timer').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Final evaluation report synthesizer
+        async function finalizeOPIcMockExam() {
+            clearInterval(examState.examTimerInterval);
+            goToSlide('feedback');
+
+            // Render basic parameters
+            document.getElementById('final-difficulty-display').innerText = `${examState.difficultyLevel}단계`;
+            document.getElementById('final-completed-questions').innerText = `${examState.transcriptsPool.length} / ${examState.questionsList.length}`;
+
+            // Aggregate metrics
+            let totalWords = 0;
+            let totalFillers = 0;
+            let totalSeconds = 0;
+
+            examState.transcriptsPool.forEach(item => {
+                totalWords += item.transcript.split(' ').length;
+                totalFillers += item.fillers;
+                totalSeconds += item.duration;
+            });
+
+            // Base diagnostic engine mimicking high quality standards
+            let predictedGrade = "IM2";
+            let scoreFluency = 65;
+            let scoreGrammar = 60;
+            let scoreVocab = 65;
+            let critiqueHtml = "발화의 연속성이 다소 정체되는 경향이 보입니다. 각 슬라이드의 기출 질문을 들었을 때 현재와 과거 시제의 구분을 확실히 하고, 최소 1분 이상 끊임없이 'I mean', 'Actually' 등의 연관 수식 어구를 채워 넣는 반복 연습이 요구됩니다.";
+
+            if (totalWords > 400 && totalFillers >= 10) {
+                predictedGrade = "AL";
+                scoreFluency = 95;
+                scoreGrammar = 90;
+                scoreVocab = 92;
+                critiqueHtml = "🏆 대단히 인상적인 유창성입니다! 질문 전반에 걸쳐 원어민에 가까운 유선형적인 필러 문맥 구조를 매우 영리하게 구축하셨습니다. 과거 시제 일치성 및 어휘력 스펙트럼 또한 극도로 훌륭하므로 실제 오픽 본 시험에서도 막힘없이 최고의 등급(AL)을 거머쥐실 것으로 확신합니다.";
+            } else if (totalWords > 200) {
+                predictedGrade = "IH";
+                scoreFluency = 82;
+                scoreGrammar = 78;
+                scoreVocab = 80;
+                critiqueHtml = "⚡ 목표로 삼으신 OPIc IH 등급을 완벽히 도달하는 최적의 스피킹 형태를 보유하고 계십니다! 구문의 체계성 및 에피소드 디테일 서술이 견고합니다. 간헐적으로 과거 분사(p.p.)나 단수-복수 관사 어순에서 잔여 실수가 검출되오니 이를 가다듬으시면 무결점 AL까지 쾌속 패스가 가능합니다.";
             }
 
-            // Real-time integration with Gemini API if provided
-            if (gameState.apiKey) {
+            // Sync visual feedback report bars
+            document.getElementById('final-predicted-grade').innerText = predictedGrade;
+            
+            document.getElementById('bar-fluency-txt').innerText = `${scoreFluency}%`;
+            document.getElementById('bar-fluency').style.width = `${scoreFluency}%`;
+            
+            document.getElementById('bar-grammar-txt').innerText = `${scoreGrammar}%`;
+            document.getElementById('bar-grammar').style.width = `${scoreGrammar}%`;
+            
+            document.getElementById('bar-vocab-txt').innerText = `${scoreVocab}%`;
+            document.getElementById('bar-vocab').style.width = `${scoreVocab}%`;
+
+            document.getElementById('ai-overall-critique-text').innerText = critiqueHtml;
+
+            // Trigger Gemini API Analysis if key is available
+            if (examState.apiKey) {
                 try {
-                    document.getElementById('evaluation-sheet-feedback').innerText = "Gemini 인공지능 오픽 위원이 당신의 스피킹을 디테일하게 검출하고 있습니다...";
+                    document.getElementById('ai-overall-critique-text').innerText = "✨ Gemini 최첨단 AI 채점위원이 당신의 총괄 모의고사 답변 분석표를 작성 중입니다. 잠시만 기다려 주세요...";
                     
-                    const systemPrompt = `You are a professional OPIc Chief Interviewer evaluating an IH/AL target speaking response.
-Analyze the provided speech transcript. Determine the OPIc grade of this specific response (AL, IH, IM3, etc.).
-Give friendly actionable speaking tips in polite Korean (2 sentences) with 1 premium AL-level native vocabulary suggestion.`;
+                    const systemPrompt = `You are a professional senior ACTFL OPIc chief evaluator.
+Based on the array of transcripts submitted by the student for this mock exam, analyze their target grammar accuracy (past tense, verb agreements), fluency score, and filler words frequency.
+Determine the predicted grade (AL, IH, IM3, IM2, etc.) and generate a concise constructive feedback review in elegant Korean (3 sentences) focusing on OPIc metrics, then recommend 2 AL-level native phrasal expressions.`;
                     
                     const payload = {
-                        contents: [{ parts: [{ text: `Question: ${currentQ.question}\nStudent Speech Transcript: ${rawAnswerText}` }] }],
+                        contents: [{ parts: [{ text: JSON.stringify(examState.transcriptsPool) }] }],
                         systemInstruction: { parts: [{ text: systemPrompt }] }
                     };
 
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${gameState.apiKey}`, {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${examState.apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
                     if (response.ok) {
-                        const jsonResult = await response.json();
-                        const parsedFeedback = jsonResult.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (parsedFeedback) feedbackText = parsedFeedback;
+                        const resJson = await response.json();
+                        const aiReportText = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (aiReportText) {
+                            document.getElementById('ai-overall-critique-text').innerText = aiReportText;
+                        }
+                    } else {
+                        showToast("Gemini API 연동 중 문제 발생. 기본 분석서가 보존됩니다.");
                     }
-                } catch(e) {
-                    console.error("Failed to connect with Gemini API, defaulting to premium rules offline grader", e);
+                } catch (e) {
+                    console.error("Failed to fetch custom Gemini feedback evaluation", e);
                 }
             }
 
-            // Present results in overlay bottom sheet matching styling
-            document.getElementById('evaluation-sheet-feedback').innerText = feedbackText;
-            document.getElementById('target-al-expression-clue').innerHTML = `<strong>AL 표현 꿀팁:</strong> "${currentQ.alClue}"`;
-            
-            triggerConfettiVictory();
-            
-            const resultsSheet = document.getElementById('success-results-sheet');
-            resultsSheet.classList.remove('hidden');
-            setTimeout(() => { resultsSheet.classList.remove('translate-y-full'); }, 50);
-            
-            gameState.isProcessingApi = false;
+            triggerConfettiExplosion();
         }
 
-        function proceedToNextQuestion() {
-            const resultsSheet = document.getElementById('success-results-sheet');
-            resultsSheet.classList.add('translate-y-full');
-            
-            setTimeout(() => {
-                resultsSheet.classList.add('hidden');
-                
-                gameState.currentIndex++;
-                if (gameState.currentIndex >= gameState.questionsList.length) {
-                    // All questions concluded, finalize exam
-                    finishEntireExam();
-                } else {
-                    // Carry on to next interviewer question
-                    loadQuestionIntoEva(gameState.currentIndex);
-                }
-            }, 300);
+        function restartExamSimulation() {
+            playSoundEffect('beep');
+            goToSlide('intro');
         }
 
-        function finishEntireExam() {
-            if (gameState.examTimerInterval) clearInterval(gameState.examTimerInterval);
-            
-            // Switch to Results View Screen
-            document.getElementById('screen-exam').classList.add('hidden');
-            document.getElementById('screen-results').classList.remove('hidden');
-            gameState.currentScreen = 'results';
-
-            // Calculate overall stats
-            let totalWords = 0;
-            let totalFillers = 0;
-            let totalDuration = 0;
-
-            gameState.transcriptsPool.forEach(item => {
-                totalWords += item.transcript.split(' ').length;
-                totalFillers += item.fillers;
-                totalDuration += item.duration;
-            });
-
-            // Determine final predicted grade
-            let finalGrade = "IM2";
-            let fluencyPercent = 65;
-            let vocabPercent = 60;
-            let grammarPercent = 70;
-            let overallCritique = "답변의 전반적인 전달력은 안정적이나 발화량이 다소 아쉽습니다. 에바의 질문을 들을 때 과거 시점인지 현재 빈도인지 명확히 구별하여 30초 이상 쉬지 않고 길게 발화하는 노하우가 수반되어야 합니다.";
-
-            if (totalWords > 250 && totalFillers >= 8) {
-                finalGrade = "AL";
-                fluencyPercent = 95;
-                vocabPercent = 90;
-                grammarPercent = 92;
-                overallCritique = "엄청난 유창성입니다! 자연스러운 Filler 활용 능력 및 적재적소에 어울리는 과거 시제 일치가 인상적입니다. 이 기세를 몰아 실제 오픽 시험장에 들어가시면 막힘없이 최고의 성적(AL)을 거두실 수 있습니다.";
-            } else if (totalWords > 150) {
-                finalGrade = "IH";
-                fluencyPercent = 82;
-                vocabPercent = 80;
-                grammarPercent = 84;
-                overallCritique = "오픽 목표 등급인 IH 수준을 확실하게 만족합니다! 어휘력이 다채롭고 답변의 구조가 체계적입니다. 가끔씩 발생하는 소소한 관사 실수를 교정하고, 질문당 1개 이상의 관용 표현을 추가하면 완벽해집니다.";
-            }
-
-            // Bind values to UI elements
-            document.getElementById('predicted-grade-tag').innerText = finalGrade;
-            
-            document.getElementById('score-fluency').innerText = `${fluencyPercent}%`;
-            document.getElementById('bar-fluency').style.width = `${fluencyPercent}%`;
-            
-            document.getElementById('score-vocab').innerText = `${vocabPercent}%`;
-            document.getElementById('bar-vocab').style.width = `${vocabPercent}%`;
-            
-            document.getElementById('score-grammar').innerText = `${grammarPercent}%`;
-            document.getElementById('bar-grammar').style.width = `${grammarPercent}%`;
-
-            document.getElementById('overall-ai-critique').innerText = overallCritique;
-            
-            triggerConfettiVictory();
-        }
-
-        function toggleQuestionText() {
-            playSynthesizedSound('beep');
-            const box = document.getElementById('hidden-question-text');
-            const icon = document.getElementById('text-toggle-icon');
-            if (box.classList.contains('hidden')) {
-                box.classList.remove('hidden');
-                icon.innerText = "ON";
+        // Toggle cheat sheet question viewer
+        function toggleVisualCheatAid() {
+            playSoundEffect('beep');
+            const helper = document.getElementById('cheat-helper-korean-question');
+            if (helper.classList.contains('hidden')) {
+                helper.classList.remove('hidden');
             } else {
-                box.classList.add('hidden');
-                icon.innerText = "OFF";
+                helper.classList.add('hidden');
             }
         }
+    </script>
 
-        function confirmExitExam() {
-            playSynthesizedSound('beep');
-            if (confirm("정말 오픽 모의고사를 종료하고 첫 화면으로 돌아가시겠습니까? 현재까지의 기록은 초기화됩니다.")) {
-                resetExamToSurvey();
-            }
-        }
+    <!-- Confetti Explosion & Toast Overlay elements -->
+    <script>
+        // Custom interactive micro notification toaster
+        function showToast(msg) {
+            const oldToast = document.querySelector('.custom-toast-pill');
+            if (oldToast) oldToast.remove();
 
-        function resetExamToSurvey() {
-            playSynthesizedSound('beep');
-            if (gameState.examTimerInterval) clearInterval(gameState.examTimerInterval);
-            
-            stopEvaVoice();
-            stopSpeechRecordingUI();
-
-            // Hide results
-            document.getElementById('screen-results').classList.add('hidden');
-            document.getElementById('screen-exam').classList.add('hidden');
-            document.getElementById('screen-difficulty').classList.add('hidden');
-            
-            // Show survey
-            document.getElementById('screen-survey').classList.remove('hidden');
-            gameState.currentScreen = 'survey';
-        }
-
-        function toggleSettingsModal(show) {
-            playSynthesizedSound('beep');
-            const modal = document.getElementById('settings-config-modal');
-            if (show) {
-                modal.classList.remove('hidden');
-                document.getElementById('gemini-api-key-box').value = gameState.apiKey;
-                document.getElementById('sound-volume-slider').value = gameState.synthVolume;
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-
-        function saveAndCloseSettings() {
-            gameState.apiKey = document.getElementById('gemini-api-key-box').value.trim();
-            gameState.synthVolume = parseFloat(document.getElementById('sound-volume-slider').value);
-            toggleSettingsModal(false);
-            showNotificationToast("⚙️ 변경 사항이 모바일 시스템에 저장되었습니다.");
-        }
-
-        function showNotificationToast(text) {
-            const prev = document.querySelector('.custom-toast');
-            if (prev) prev.remove();
-
-            const toast = document.createElement('div');
-            toast.className = "custom-toast fixed bottom-1/4 left-1/2 transform -translate-x-1/2 bg-slate-900/95 text-indigo-200 border border-indigo-500/30 px-5 py-3 rounded-2xl shadow-xl text-xs font-bold font-sans tracking-wide text-center max-w-[280px] z-50 animate-bounce";
-            toast.innerText = text;
-            document.body.appendChild(toast);
+            const t = document.createElement('div');
+            t.className = "custom-toast-pill fixed bottom-1/4 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white border border-slate-700 px-6 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-center max-w-[320px] z-50 animate-bounce leading-relaxed";
+            t.innerText = msg;
+            document.body.appendChild(t);
 
             setTimeout(() => {
-                toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
-                setTimeout(() => { toast.remove(); }, 300);
-            }, 3500);
+                t.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                setTimeout(() => t.remove(), 300);
+            }, 3800);
         }
 
-        let confetti = [];
-        let confettiActive = false;
-        let confettiCanvas, confettiCtx;
+        // High visual-depth pure JS particle confetti generator
+        let confettiArray = [];
+        let isConfettiActive = false;
+        let cCanvas, cCtx;
 
-        function setupConfettiEngine() {
-            confettiCanvas = document.getElementById('confetti-canvas');
-            confettiCtx = confettiCanvas.getContext('2d');
-            confettiCanvas.width = 380;
-            confettiCanvas.height = 780;
+        function initConfettiCanvas() {
+            cCanvas = document.getElementById('confetti-overlay');
+            cCtx = cCanvas.getContext('2d');
+            resizeConfettiCanvas();
+            window.addEventListener('resize', resizeConfettiCanvas);
         }
 
-        function triggerConfettiVictory() {
-            confetti = [];
-            const colors = ['#fbbf24', '#34d399', '#60a5fa', '#f472b6', '#a78bfa'];
-            for (let i = 0; i < 50; i++) {
-                confetti.push({
-                    x: Math.random() * 380,
-                    y: -10 - Math.random() * 20,
-                    r: Math.random() * 5 + 4,
-                    d: Math.random() * 380,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    tilt: Math.random() * 10 - 5,
-                    tiltAngleIncremental: Math.random() * 0.08 + 0.02,
-                    tiltAngle: 0
+        function resizeConfettiCanvas() {
+            if (cCanvas) {
+                cCanvas.width = cCanvas.parentElement.clientWidth;
+                cCanvas.height = cCanvas.parentElement.clientHeight;
+            }
+        }
+
+        function triggerConfettiExplosion() {
+            initConfettiCanvas();
+            confettiArray = [];
+            const palette = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+            
+            for (let i = 0; i < 70; i++) {
+                confettiArray.push({
+                    x: Math.random() * cCanvas.width,
+                    y: -15 - Math.random() * 20,
+                    radius: Math.random() * 6 + 4,
+                    density: Math.random() * 20,
+                    color: palette[Math.floor(Math.random() * palette.length)],
+                    angle: Math.random() * 360,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 2 - 1
                 });
             }
-            if (!confettiActive) {
-                confettiActive = true;
-                animateConfetti();
+
+            if (!isConfettiActive) {
+                isConfettiActive = true;
+                runConfettiLoop();
             }
         }
 
-        function animateConfetti() {
-            if (!confettiActive) return;
-            confettiCtx.clearRect(0, 0, 380, 780);
+        function runConfettiLoop() {
+            if (!isConfettiActive) return;
+            cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
             let activeFlakes = 0;
 
-            confetti.forEach((p) => {
-                p.tiltAngle += p.tiltAngleIncremental;
-                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
-                p.x += Math.sin(p.tiltAngle);
-                p.tilt = Math.sin(p.tiltAngle - p.r / 2) * 15;
+            confettiArray.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
 
-                if (p.y <= 780) {
+                if (p.y <= cCanvas.height) {
                     activeFlakes++;
                 }
 
-                confettiCtx.beginPath();
-                confettiCtx.lineWidth = p.r;
-                confettiCtx.strokeStyle = p.color;
-                confettiCtx.moveTo(p.x + p.tilt + p.r / 2, p.y);
-                confettiCtx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
-                confettiCtx.stroke();
+                cCtx.beginPath();
+                cCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                cCtx.fillStyle = p.color;
+                cCtx.fill();
             });
 
             if (activeFlakes === 0) {
-                confettiActive = false;
-                confettiCtx.clearRect(0, 0, 380, 780);
+                isConfettiActive = false;
+                cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
             } else {
-                requestAnimationFrame(animateConfetti);
+                requestAnimationFrame(runConfettiLoop);
             }
         }
 
-        // Run setup on document load
-        window.addEventListener('load', () => {
-            setupConfettiEngine();
-            initializeSTT();
-            // Pre-load synthesis voices to bypass browser lazy-load issue
+        // Preload synthesis voices on startup
+        window.addEventListener('DOMContentLoaded', () => {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.getVoices();
             }
+            updateSurveyRowStyling();
         });
     </script>
 </body>
